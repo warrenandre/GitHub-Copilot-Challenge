@@ -1,14 +1,21 @@
 ---
 emoji: 🏢
 name: Enterprise Branch Score
-description: Score non-default branch pushes for enterprise readiness and upsert a branch-named issue with the latest report.
+description: |
+  This workflow reviews new branch pushes and produces an enterprise-readiness
+  score for the codebase. It looks for tests, documentation, CI/CD,
+  security/governance, developer experience, and operational readiness signals,
+  then creates or updates a GitHub issue named after the branch with the latest
+  score and summary.
 on:
   push:
     tags-ignore:
       - '**'
+  workflow_dispatch:
 permissions:
   contents: read
   issues: read
+  pull-requests: read
   copilot-requests: write
 strict: true
 network:
@@ -22,6 +29,7 @@ safe-outputs:
   allowed-github-references: []
   max-bot-mentions: 1
   create-issue:
+    labels: [report, enterprise-score]
     deduplicate-by-title: true
     max: 1
   update-issue:
@@ -32,16 +40,17 @@ safe-outputs:
 
 # Enterprise Branch Score
 
-## Task
+Create an enterprise-readiness report for every non-default branch push and keep a single rolling issue per branch.
 
-Evaluate each pushed branch for enterprise readiness and publish one rolling report issue per branch.
+## What to include
 
-1. Determine the pushed branch name and the repository default branch.
-2. If the event is not a branch push, or the branch is the default branch, or the branch matches obvious automation branches such as `dependabot/*`, `gh-readonly-queue/*`, or `copilot/*`, call `noop` with a short reason.
-3. Inspect the checked-out repository contents first. Use GitHub reads only when you need metadata or to find an existing issue.
-4. Score the branch out of 100 using only evidence that is present in the repository.
+- An overall enterprise-readiness score out of 100
+- Evidence-based scoring for tests, documentation, CI/CD, security/governance, developer experience, and operations readiness
+- A concise executive summary of the branch state
+- Key strengths, important gaps, and exactly 3 highest-value next actions
+- A compact evidence snapshot listing the files, directories, or workflow assets that drove the score
 
-### Scoring Rubric
+## Scoring model
 
 - Testing and quality gates: 25 points
   Look for automated tests, test directories, linting, formatting, type checking, coverage signals, or similar quality controls.
@@ -56,14 +65,12 @@ Evaluate each pushed branch for enterprise readiness and publish one rolling rep
 - Operations and production readiness: 15 points
   Look for infrastructure as code, deployment manifests, environment configuration strategy, observability hooks, health checks, migration guidance, backup or recovery guidance, or release/versioning signals.
 
-5. Compute the category scores and overall score, then explain the result with concise evidence.
-6. Identify the strongest enterprise-ready signals, the most important gaps, and exactly 3 highest-value next actions.
-7. The issue title must be exactly the branch name.
-8. Before writing anything, search open issues for one whose title exactly matches the branch name.
-9. If an open issue with that exact title exists, use `update_issue` to replace its body with the latest report.
-10. If no matching open issue exists, use `create_issue` to create one with the exact branch name as the title.
-11. Never create more than one issue for the same branch in a single run.
-12. If the branch has too little material to score meaningfully, still produce a report, but make the uncertainty explicit.
+## Style
+
+- Be concise, factual, and useful
+- Keep the summary readable for engineering leads and maintainers
+- Do not invent signals that are not present in the repository
+- If evidence is weak or incomplete, say so explicitly
 
 ## Report Format
 
@@ -97,6 +104,20 @@ Write the issue body in GitHub-flavored markdown with this structure.
 - Add any nuanced caveats, ambiguous findings, or partial signals here.
 
 </details>
+
+## Process
+
+1. Determine the pushed branch name and the repository default branch.
+2. If the event is not a branch push, or the branch is the default branch, or the branch matches obvious automation branches such as `dependabot/*`, `gh-readonly-queue/*`, or `copilot/*`, call `noop` with a short reason.
+3. Inspect the checked-out repository contents first. Use GitHub reads only when needed for metadata or to find an existing issue.
+4. Score the branch using only evidence found in the repository.
+5. Compute the category scores and overall score, then explain the result with concise evidence.
+6. Identify the strongest enterprise-ready signals, the most important gaps, and exactly 3 highest-value next actions.
+7. Search open issues for one whose title exactly matches the branch name.
+8. If a matching open issue exists, use `update_issue` to replace its body with the latest report.
+9. If no matching open issue exists, use `create_issue` to create one whose title is exactly the branch name.
+10. Never create more than one issue for the same branch in a single run.
+11. If the branch has too little material to score meaningfully, still produce a report, but make the uncertainty explicit.
 
 ## Safe Outputs
 
