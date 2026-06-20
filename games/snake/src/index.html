@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake Cash Rush</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://pyscript.net/releases/2025.3.1/core.css">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="https://pyscript.net/releases/2025.3.1/core.js"></script>
+  <script src="app.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+    <main class="game-card">
+      <section class="hero-strip">
+        <p class="eyebrow">Arcade Finance</p>
+        <h1>Snake Cash Rush</h1>
+        <p class="subtitle">Chase stacks, build momentum, and beat your best run.</p>
+      </section>
+
+      <section class="hud-panel">
+        <div class="score-tile">
+          <span class="tile-label">Score</span>
+          <strong id="scoreValue">0</strong>
+        </div>
+        <div class="score-tile best-tile">
+          <span class="tile-label">Best</span>
+          <strong id="bestScoreValue">0</strong>
+        </div>
+        <button id="startButton" class="action-button" type="button">Start Run</button>
+      </section>
+
+      <section class="board-panel">
+        <div class="board-frame">
+          <canvas id="gameCanvas" width="560" height="560" aria-label="Snake game board"></canvas>
+          <div id="gameOverlay" class="overlay-card visible" aria-live="polite">
+            <p id="overlayKicker" class="overlay-kicker">Ready to bank?</p>
+            <h2 id="overlayTitle">Press Start</h2>
+            <p id="overlayMessage">Collect cash bills, dodge the walls, and keep the streak alive.</p>
+            <button id="overlayButton" class="action-button overlay-button" type="button">Play Now</button>
+          </div>
+          <div id="cashBurst" class="cash-burst" aria-hidden="true">+$</div>
+        </div>
+      </section>
+
+      <section class="footer-strip">
+        <div class="controls-block">
+          <span class="controls-label">Controls</span>
+          <p>Arrow keys or WASD to steer. Press <span class="chip">R</span> to restart.</p>
+        </div>
+        <div class="status-block">
+          <span class="controls-label">Mode</span>
+          <p id="statusText">Waiting for your first run.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <py-config>
+    packages = []
+  </py-config>
+  <script type="py" src="main.py"></script>
+</body>
+</html>
