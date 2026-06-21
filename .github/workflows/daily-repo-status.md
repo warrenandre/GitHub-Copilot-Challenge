@@ -32,13 +32,18 @@ safe-outputs:
   create-issue:
     title-prefix: "[repo-score] "
     labels: [report, repo-score, enterprise-score]
-    close-older-issues: true
+    deduplicate-by-title: true
+  update-issue:
+    target: "*"
+    body: true
 source: local/customized-for-repo-score
 ---
 
 # Repo Score
 
 Create a repository enterprise-readiness score report as a GitHub issue.
+
+Use the branch name in the issue title so the same branch report can be updated on later runs.
 
 ## What to include
 
@@ -104,9 +109,18 @@ Use GitHub-flavored markdown and keep the visible content concise.
 
 ## Process
 
-1. Inspect the checked-out repository first.
-2. Study the repository structure, documentation, workflows, and configuration files.
-3. Use GitHub reads only when needed for supporting context.
-4. Score the repository using only evidence present in the codebase or repository metadata.
-5. Summarize the strongest enterprise-ready signals and the biggest gaps.
-6. Create the GitHub issue with the score report.
+1. Determine the pushed branch name from the event context.
+2. Build the report title from the branch name, using the configured issue title prefix automatically.
+3. Inspect the checked-out repository first.
+4. Study the repository structure, documentation, workflows, and configuration files.
+5. Use GitHub reads when needed to find an existing open issue with the same branch-based title.
+6. Score the repository using only evidence present in the codebase or repository metadata.
+7. Summarize the strongest enterprise-ready signals and the biggest gaps.
+8. If an open issue already exists for this branch title, use `update_issue` to replace its body with the latest score report.
+9. If no matching open issue exists, use `create_issue` to create one for this branch.
+
+## Safe Outputs
+
+- Use `create_issue` when there is no existing open report issue for the branch.
+- Use `update_issue` when an open issue already exists for the same branch title.
+- Keep the issue title branch-based so later runs can update the same issue.
