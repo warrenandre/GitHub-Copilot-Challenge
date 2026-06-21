@@ -5,12 +5,7 @@ description: |
   governance, developer experience, and operational readiness, then publishes
   a scored summary as a GitHub issue.
 
-on:
-  push:
-    tags-ignore:
-      - '**'
-  workflow_dispatch:
-
+on: push
 permissions:
   contents: read
   issues: read
