@@ -1,6 +1,71 @@
 # Enterprise Branch Score Lab
 
+## Tagline
+
 > Build fast with GitHub Copilot. Raise the bar like an enterprise team.
+
+## Event Title Options
+
+If you want to present this lab with a stronger event identity, these are good working titles:
+
+1. Enterprise Branch Score Lab
+2. From Prototype to Enterprise with GitHub Copilot
+3. Copilot to Enterprise Grade
+4. Build Smart, Scale Better
+
+Recommended title:
+
+# From Prototype to Enterprise with GitHub Copilot
+
+## Opening Pitch
+
+Most hackathon apps prove an idea. Fewer prove they could survive real-world use.
+
+This lab is about closing that gap.
+
+Participants will use GitHub Copilot to help take an application from functional and impressive to structured, secure, supportable, and enterprise aware. The focus is not on adding process for the sake of process. The focus is on learning how to create value quickly by applying the right best practices at the right time, with GitHub Copilot acting as a practical engineering assistant throughout the journey.
+
+By the end of the session, teams should understand not only what makes an application more enterprise grade, but also how to use GitHub Copilot to accelerate that evolution in a way that is deliberate, credible, and useful.
+
+## Facilitator Agenda
+
+### 1. Welcome and framing
+
+- Introduce the lab goal: move an app toward enterprise grade
+- Explain that GitHub Copilot is the primary acceleration tool for the exercise
+- Set the expectation that speed matters, but quality signals matter more
+
+### 2. Show what enterprise grade means in practice
+
+- Explain the difference between a working demo and a supportable solution
+- Highlight the target themes: architecture, security, testing, observability, delivery discipline, and documentation
+- Emphasize that enterprise grade is about trust, not ceremony
+
+### 3. Introduce GitHub Copilot as the working companion
+
+- Show how Copilot can help read code, propose changes, generate tests, and improve documentation
+- Explain that participants should use Copilot to accelerate implementation, but still validate and refine outputs with engineering judgment
+- Encourage prompt experimentation focused on real improvement work
+
+### 4. Team working session
+
+- Teams assess their current app or prototype
+- Teams identify the most important enterprise gaps
+- Teams use GitHub Copilot to implement targeted improvements
+- Facilitators circulate to help teams apply patterns with intent
+
+### 5. Enterprise Pattern Tracker review
+
+- Explain how points are awarded
+- Reinforce that meaningful implementation beats superficial checklists
+- Highlight the added recognition for strong GitHub Copilot usage in service of better engineering outcomes
+
+### 6. Demo and reflection
+
+- Teams show what they changed and why it matters
+- Teams explain which enterprise practices they applied
+- Teams share where GitHub Copilot created the most value
+- Facilitators reflect on the strongest patterns, tradeoffs, and lessons learned
 
 ## Why This Lab Exists
 
@@ -28,6 +93,21 @@ The goal is to show that GitHub Copilot can help teams:
 - Accelerate the path from functional prototype to enterprise-ready solution
 
 Rather than treating Copilot as a novelty, the lab treats it as a serious engineering assistant that helps teams make better decisions faster.
+
+## What Participants Should Learn About GitHub Copilot
+
+This lab is meant to give participants practical confidence with GitHub Copilot, especially in an engineering setting where the goal is not just speed, but better outcomes.
+
+Participants should leave with a clearer understanding of how to use Copilot to:
+
+- explore an unfamiliar application quickly
+- identify technical debt and enterprise gaps
+- refactor code into cleaner structures
+- generate and improve tests
+- strengthen documentation and implementation notes
+- move from idea execution to quality improvement without losing momentum
+
+The learning outcome is not just “I used Copilot.” The learning outcome is “I know how Copilot helps me create value faster.”
 
 ## What Makes This Lab Valuable
 
@@ -61,6 +141,15 @@ The lab focuses on the most important areas that help a solution mature into som
 - Using Copilot to understand code, propose improvements, and accelerate cleanup
 - Seeing where Copilot adds value quickly across testing, documentation, refactoring, and architecture support
 - Building confidence in how to use the tool as part of a real delivery workflow
+
+Suggested prompts and use cases in the lab include:
+
+- asking Copilot to summarize the current architecture
+- asking for missing tests around meaningful behaviors
+- asking for refactoring suggestions to separate concerns more clearly
+- asking for secure configuration improvements
+- asking for logging, diagnostics, and validation enhancements
+- asking for documentation that explains decisions and operating expectations
 
 ### 2. Architecture that can grow
 
@@ -205,6 +294,19 @@ This tracker is not about rewarding buzzwords. It is about rewarding thoughtful 
 The tracker will highlight participants who most effectively apply enterprise patterns and best practices while still delivering a compelling solution.
 
 This creates a fun competitive layer while reinforcing the real lesson: strong engineering choices matter.
+
+It also reinforces that GitHub Copilot is most valuable when it helps teams make thoughtful improvements faster, not when it is used to generate change without understanding.
+
+## Suggested Session Outcomes
+
+At the end of the lab, a strong team should be able to demonstrate:
+
+- a better structured application than the one they started with
+- clearer evidence of enterprise-minded engineering decisions
+- meaningful use of GitHub Copilot to accelerate implementation and learning
+- improved confidence that the solution could evolve beyond hackathon conditions
+
+This gives the lab a practical finish line: not just a polished demo, but a more credible application and a more capable team.
 
 ## What Success Looks Like
 
