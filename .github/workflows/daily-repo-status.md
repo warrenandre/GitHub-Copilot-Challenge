@@ -1,9 +1,8 @@
 ---
 description: |
   This workflow creates repository enterprise-readiness score reports. It
-  evaluates the codebase for documentation, testing, code readability,
-  exception handling, and CI/CD, then publishes a scored summary as a
-  GitHub issue.
+  evaluates the codebase for documentation, testing, CI/CD, and exception
+  handling, then publishes a scored summary as a GitHub issue.
 
 on: push
 permissions:
@@ -43,7 +42,7 @@ Use the branch name in the issue title so the same branch report can be updated 
 ## What to include
 
 - An overall enterprise-readiness score out of 100 for the current repository state
-- A category breakdown covering documentation, testing, code readability, exception handling, and CI/CD
+- A category breakdown covering documentation, testing, CI/CD, and exception handling
 - The strongest signals that the repository is enterprise-ready
 - The biggest gaps preventing the repository from being enterprise-ready
 - Exactly 3 high-value recommendations for improving the score
@@ -51,16 +50,14 @@ Use the branch name in the issue title so the same branch report can be updated 
 
 ## Scoring model
 
-- Documentation: 20 points
+- Documentation: 25 points
   Look for a useful README, docstrings on classes and methods, inline comments explaining intent, setup instructions, architecture notes, or contribution guidance.
-- Testing: 25 points
+- Testing: 30 points
   Look for automated tests, test directories, unit tests, integration tests, edge case coverage, test structure, or test runner configuration.
-- Code Readability: 25 points
-  Look for clear and consistent naming conventions, separation of concerns, low cyclomatic complexity, modular structure, consistent code style, and self-documenting code.
-- Exception Handling: 20 points
+- CI/CD: 20 points
+  Look for CI/CD pipeline definitions, automated linting, test execution on push, build validation, deployment automation, or environment promotion signals.
+- Exception Handling: 25 points
   Look for try-except blocks, meaningful error messages, graceful fallbacks, input validation, defensive coding, custom exception classes, or error logging.
-- CI/CD: 10 points
-  Look for GitHub Actions workflows, automated linting, test execution on push, build validation, or deployment pipeline configuration.
 
 ## Report format
 

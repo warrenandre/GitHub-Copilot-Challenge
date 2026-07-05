@@ -41,7 +41,7 @@
 
                 <div class="task-box">
                     <h3>🎯 What Is This Challenge?</h3>
-                    <p>You'll race through 4 enterprise software challenges using <strong>GitHub Copilot</strong> as your AI pair programmer. Each challenge focuses on a critical pillar of production-ready software: documentation, testing, code readability, and exception handling.</p>
+                    <p>You'll race through 4 enterprise software challenges using <strong>GitHub Copilot</strong> as your AI pair programmer. Each challenge focuses on a critical pillar of production-ready software: documentation, testing, CI/CD, and exception handling.</p>
                     <p style="margin-top: 0.8rem;">Your mission is to apply Copilot's AI capabilities to transform the <strong>Snake Cash Rush</strong> game project into enterprise-grade code — one challenge at a time.</p>
                 </div>
 
@@ -229,14 +229,14 @@ git push -u origin initials-surname</code></pre>
             <section class="challenge-card" id="challenge3">
                 <div class="challenge-header">
                     <span class="challenge-number">3</span>
-                    <h2>✨ Code Readability</h2>
+                    <h2>⚙️ CI/CD</h2>
                     <span class="badge">TURBO</span>
                 </div>
-                <p class="challenge-desc">Readable code is maintainable code. Use Copilot to refactor, rename, and restructure for clarity and consistency.</p>
+                <p class="challenge-desc">Automated pipelines catch issues early and deliver code reliably. Use Copilot to set up continuous integration and deployment workflows for your project.</p>
                 
                 <div class="task-box">
                     <h3>🎯 Your Mission</h3>
-                    <p>Refactor code for clarity — meaningful names, consistent patterns, SOLID principles, and clean architecture.</p>
+                    <p>Create a CI/CD pipeline that runs linting, tests, and builds automatically on every push or pull request.</p>
                 </div>
 
                 <div class="steps-box">
@@ -245,7 +245,7 @@ git push -u origin initials-surname</code></pre>
                         <li><strong>Stay on your branch</strong> — continue on the same branch you created in Challenge 1</li>
                         <li><strong>Open GitHub Copilot Chat</strong> in VS Code (<code>Ctrl+Shift+I</code>)</li>
                         <li><strong>Copy a sample prompt</strong> below and paste it into Copilot Chat</li>
-                        <li><strong>Review and apply</strong> the refactored code to your project</li>
+                        <li><strong>Review and apply</strong> the generated pipeline to your project</li>
                         <li><strong>Commit and push</strong> your changes to the branch</li>
                     </ol>
                 </div>
@@ -253,11 +253,11 @@ git push -u origin initials-surname</code></pre>
                 <div class="prompts-box">
                     <h3>💡 Sample Prompts</h3>
                     <div class="prompt-item" onclick="copyPrompt(this)">
-                        <code>Refactor main.py to use clearer variable names and extract the drawing logic into separate methods for better readability</code>
+                        <code>Create a CI/CD pipeline for this Python project that runs linting and unit tests on every push to any branch</code>
                         <span class="copy-hint">📋 Click to copy</span>
                     </div>
                     <div class="prompt-item" onclick="copyPrompt(this)">
-                        <code>Simplify the handle_keydown method and rename constants in main.py to be more descriptive and self-documenting</code>
+                        <code>Add a CI pipeline that installs dependencies, runs pytest, and reports test results on pull requests</code>
                         <span class="copy-hint">📋 Click to copy</span>
                     </div>
                     <div class="prompt-note">
@@ -272,7 +272,7 @@ git push -u origin initials-surname</code></pre>
 git add .
 
 # Commit with a meaningful message
-git commit -m "refactor: improve code readability using Copilot"
+git commit -m "ci: add CI/CD pipeline for linting and testing"
 
 # Push to your branch
 git push -u origin initials-surname</code></pre>
@@ -351,7 +351,7 @@ git push -u origin initials-surname</code></pre>
                 <div class="stats">
                     <div class="stat">📄 Documentation</div>
                     <div class="stat">🧪 Testing</div>
-                    <div class="stat">✨ Readability</div>
+                    <div class="stat">⚙️ CI/CD</div>
                     <div class="stat">🛡️ Exception Handling</div>
                 </div>
                 <button class="restart-btn" onclick="restartRace()">🔄 Race Again</button>
