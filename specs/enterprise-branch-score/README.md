@@ -38,7 +38,7 @@ By the end of the session, teams should understand not only what makes an applic
 ### 2. Show what enterprise grade means in practice
 
 - Explain the difference between a working demo and a supportable solution
-- Highlight the target themes: architecture, security, testing, observability, delivery discipline, and documentation
+- Highlight the target categories: documentation, testing, code readability, exception handling, and CI/CD
 - Emphasize that enterprise grade is about trust, not ceremony
 
 ### 3. Introduce GitHub Copilot as the working companion
@@ -133,63 +133,37 @@ Participants gain hands-on experience with GitHub Copilot in a context that feel
 
 ## What The Lab Will Cover
 
-The lab focuses on the most important areas that help a solution mature into something enterprise ready.
+The lab focuses on five key areas that help a solution mature into something enterprise ready.
 
-### 1. Using GitHub Copilot effectively
+### 1. Documentation
 
-- Learning prompt patterns that produce useful implementation support
-- Using Copilot to understand code, propose improvements, and accelerate cleanup
-- Seeing where Copilot adds value quickly across testing, documentation, refactoring, and architecture support
-- Building confidence in how to use the tool as part of a real delivery workflow
-
-Suggested prompts and use cases in the lab include:
-
-- asking Copilot to summarize the current architecture
-- asking for missing tests around meaningful behaviors
-- asking for refactoring suggestions to separate concerns more clearly
-- asking for secure configuration improvements
-- asking for logging, diagnostics, and validation enhancements
-- asking for documentation that explains decisions and operating expectations
-
-### 2. Architecture that can grow
-
-- Separating concerns clearly across UI, business logic, data, and integration layers
-- Designing components and services for readability, reuse, and change tolerance
-- Reducing tight coupling and avoiding fragile, one-off implementations
-
-### 3. Secure-by-default thinking
-
-- Protecting secrets and sensitive configuration
-- Applying least-privilege access patterns
-- Validating inputs and handling errors safely
-- Making security part of the build, not a cleanup step
-
-### 4. Operational readiness
-
-- Logging meaningful events
-- Adding health checks and diagnostics where appropriate
-- Making failures visible and easier to investigate
-- Thinking through supportability before production
-
-### 5. Delivery discipline
-
-- Structuring code for testing and maintainability
-- Using automation where possible for validation and deployment
-- Keeping configuration consistent across environments
-- Creating a path from local success to repeatable release
-
-### 6. Quality and resilience
-
-- Handling edge cases and failure modes deliberately
-- Building with testability in mind
-- Avoiding brittle assumptions that only work in demo conditions
-- Designing for reliability under change and growth
-
-### 7. Documentation that helps teams move
-
-- Capturing the intent behind technical decisions
+- README with setup instructions, architecture overview, and contribution guidelines
+- Docstrings and inline comments explaining intent and behavior
 - Making onboarding easier for teammates and reviewers
-- Explaining how the app is meant to run, scale, and evolve
+
+### 2. Testing
+
+- Unit tests covering meaningful behaviors and edge cases
+- Integration tests validating component interactions
+- Test structure that supports confidence in change
+
+### 3. Code Readability
+
+- Clear naming conventions and consistent style
+- Separation of concerns and reduced complexity
+- Refactoring toward cleaner, more maintainable structures
+
+### 4. Exception Handling
+
+- Try-except blocks with meaningful error messages
+- Graceful fallbacks for failure scenarios
+- Input validation and defensive coding practices
+
+### 5. CI/CD
+
+- GitHub Actions workflow for automated checks
+- Linting and test execution on push
+- Deployment pipeline configuration
 
 ## The Core Intention
 
@@ -279,15 +253,11 @@ This tracker is not about rewarding buzzwords. It is about rewarding thoughtful 
 
 | Category | Example Signals | Sample Points |
 | --- | --- | ---: |
-| Secure configuration | Secrets moved to configuration or managed stores, no hard-coded credentials | 10 |
-| Input validation | Boundary checks, defensive validation, safer failure handling | 8 |
-| Observability | Structured logs, runtime diagnostics, health visibility | 10 |
-| Testability | Unit tests, integration coverage, clear validation path | 10 |
-| Architecture quality | Clear separation of concerns, modular structure, low coupling | 12 |
-| Delivery readiness | CI checks, environment-aware config, release workflow | 12 |
-| Documentation | Setup guide, architecture notes, operating guidance | 6 |
-| Resilience | Retry strategy, error isolation, graceful fallback behavior | 10 |
-| Copilot leverage | Strong use of GitHub Copilot to accelerate quality improvements responsibly | 8 |
+| Documentation | README, docstrings, architecture notes, setup guide, inline comments | 20 |
+| Testing | Unit tests, integration tests, edge case coverage, test structure | 25 |
+| Code Readability | Clear naming, separation of concerns, reduced complexity, consistent style | 25 |
+| Exception Handling | Try-except blocks, meaningful error messages, graceful fallbacks, input validation | 20 |
+| CI/CD | GitHub Actions workflow, automated checks, linting, deployment pipeline | 10 |
 
 ### Recognition focus
 

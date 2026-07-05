@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Copilot Enterprise Challenge Race</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="race-track">
+        <header class="hero">
+            <h1>🏁 GitHub Copilot Enterprise Challenge Race</h1>
+            <p class="subtitle">Race through 4 challenges to build enterprise-grade software!</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <p class="progress-text">Challenge <span id="currentChallenge">1</span> of 4</p>
+        </header>
+
+        <div class="race-container">
+            <div class="race-lane">
+                <div class="car" id="raceCar">🏎️</div>
+                <div class="checkpoints">
+                    <span class="checkpoint active" data-challenge="1">1</span>
+                    <span class="checkpoint" data-challenge="2">2</span>
+                    <span class="checkpoint" data-challenge="3">3</span>
+                    <span class="checkpoint" data-challenge="4">4</span>
+                    <span class="finish-flag">🏁</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="challenges-wrapper">
+            <!-- Pit Stop: Overview -->
+            <section class="challenge-card active" id="challengePitStop">
+                <div class="challenge-header">
+                    <span class="challenge-number">🛞</span>
+                    <h2>🏁 Pit Stop — Getting Started</h2>
+                    <span class="badge">OVERVIEW</span>
+                </div>
+
+                <div class="task-box">
+                    <h3>🎯 What Is This Challenge?</h3>
+                    <p>You'll race through 4 enterprise software challenges using <strong>GitHub Copilot</strong> as your AI pair programmer. Each challenge focuses on a critical pillar of production-ready software: documentation, testing, code readability, and exception handling.</p>
+                    <p style="margin-top: 0.8rem;">Your mission is to apply Copilot's AI capabilities to transform the <strong>Snake Cash Rush</strong> game project into enterprise-grade code — one challenge at a time.</p>
+                </div>
+
+                <div class="prompts-box">
+                    <h3>🧰 Tools We'll Be Using</h3>
+                    <ul class="tools-list">
+                        <li><strong>Visual Studio Code</strong> — Our code editor</li>
+                        <li><strong>GitHub Copilot</strong> — AI pair programmer (Chat, Inline, and Agent mode)</li>
+                        <li><strong>GitHub Copilot Chat</strong> — Ask questions, generate code, and get explanations</li>
+                        <li><strong>Python 3.10+</strong> — The Snake game backend runs on Python</li>
+                        <li><strong>A modern browser</strong> — Microsoft Edge or Chrome to run the game</li>
+                    </ul>
+                </div>
+
+                <div class="prompts-box">
+                    <h3>⚙️ Setting Up GitHub Copilot in VS Code</h3>
+                    <ol class="setup-steps">
+                        <li>Open <strong>VS Code</strong> and go to the Extensions panel (<code>Ctrl+Shift+X</code>)</li>
+                        <li>Search for <strong>"GitHub Copilot"</strong> and install the extension</li>
+                        <li>Also install <strong>"GitHub Copilot Chat"</strong> for the chat panel</li>
+                        <li>Sign in with your GitHub account when prompted</li>
+                        <li>Verify Copilot is active — look for the Copilot icon in the status bar</li>
+                        <li>Open Copilot Chat with <code>Ctrl+Shift+I</code> or click the chat icon in the sidebar</li>
+                    </ol>
+                </div>
+
+                <div class="prompts-box">
+                    <h3>📋 Pre-requisites for the Snake Cash Rush Project</h3>
+                    <ul class="tools-list">
+                        <li><strong>Visual Studio Code</strong> — <a href="https://code.visualstudio.com/download" target="_blank" rel="noopener noreferrer">Download VS Code</a></li>
+                        <li><strong>Python 3.10 or later</strong> — <a href="https://www.python.org/downloads/" target="_blank" rel="noopener noreferrer">Download Python</a>
+                            <div class="screenshot-hint">
+                                <img src="assets/python-download-btn.png" alt="Click the yellow 'Download Python install manager' button" />
+                                <p class="img-caption">👆 Click the yellow button on the Python downloads page</p>
+                            </div>
+                        </li>
+                        <li><strong>A modern browser</strong> (Edge or Chrome)</li>
+                        <li><strong>Internet access</strong> — PyScript and Google Fonts are fetched from CDNs on first load</li>
+                    </ul>
+
+                    <details class="collapsible-section">
+                        <summary>▶️ Running the Snake Game (optional)</summary>
+                        <div class="code-block">
+                            <pre><code># Open a terminal in games/snake
+python -m http.server 8000
+
+# Then open in your browser:
+# http://localhost:8000/src/</code></pre>
+                        </div>
+                        <p style="margin-top: 0.8rem; color: #8b949e; font-size: 0.85rem;">💡 Wait a few seconds for the PyScript runtime to initialize, then click <strong>Start Run</strong> or press an arrow key to begin.</p>
+                    </details>
+                </div>
+
+                <button class="next-btn" onclick="advanceChallenge(1)">Start the Race ➡️</button>
+            </section>
+
+            <!-- Challenge 1 -->
+            <section class="challenge-card" id="challenge1">
+                <div class="challenge-header">
+                    <span class="challenge-number">1</span>
+                    <h2>📄 Documentation</h2>
+                    <span class="badge">START</span>
+                </div>
+                <p class="challenge-desc">Great software starts with great documentation. Use Copilot to generate clear, comprehensive docs for your application.</p>
+                
+                <div class="task-box">
+                    <h3>🎯 Your Mission</h3>
+                    <p>Generate meaningful documentation for your codebase including README, API docs, and inline comments.</p>
+                </div>
+
+                <div class="steps-box">
+                    <h3>📝 Steps to Complete</h3>
+                    <ol class="setup-steps">
+                        <li><strong>Create a new branch</strong> — name it with your initials and surname (e.g. <code>jd-doe</code>)</li>
+                        <li><strong>Open GitHub Copilot Chat</strong> in VS Code (<code>Ctrl+Shift+I</code>)</li>
+                        <li><strong>Copy a sample prompt</strong> below and paste it into Copilot Chat</li>
+                        <li><strong>Review and apply</strong> the generated documentation to your project</li>
+                        <li><strong>Commit and push</strong> your changes to the branch</li>
+                    </ol>
+
+                    <details class="collapsible-section">
+                        <summary>🌿 Help: Creating a new branch</summary>
+                        <div class="code-block">
+                            <pre><code># Replace initials-surname with yours (e.g. jd-doe)
+git checkout -b initials-surname
+
+# Example:
+git checkout -b jd-doe</code></pre>
+                        </div>
+                    </details>
+
+                    <details class="collapsible-section">
+                        <summary>✅ Help: Committing and pushing your changes</summary>
+                        <div class="code-block">
+                            <pre><code># Stage all changes
+git add .
+
+# Commit with a meaningful message
+git commit -m "docs: add comprehensive documentation using Copilot"
+
+# Push to your branch
+git push -u origin initials-surname</code></pre>
+                        </div>
+                    </details>
+                </div>
+
+                <div class="prompts-box">
+                    <h3>💡 Sample Prompts</h3>
+                    <div class="prompt-item" onclick="copyPrompt(this)">
+                        <code>Generate a README.md for this Snake Cash Rush game explaining how to run it, how to play, and the project structure</code>
+                        <span class="copy-hint">📋 Click to copy</span>
+                    </div>
+                    <div class="prompt-item" onclick="copyPrompt(this)">
+                        <code>Add docstrings to all methods in main.py explaining what each method does, its parameters, and return values</code>
+                        <span class="copy-hint">📋 Click to copy</span>
+                    </div>
+                    <div class="prompt-note">
+                        <p>💡 <strong>Note:</strong> These are only sample prompts. Feel free to change and update them to make them more valuable towards your sprint race!</p>
+                    </div>
+                </div>
+
+                <button class="back-btn" onclick="advanceChallenge(0)">⬅️ Pit Stop</button>
+                <button class="next-btn" onclick="advanceChallenge(2)">Next Challenge ➡️</button>
+            </section>
+
+            <!-- Challenge 2 -->
+            <section class="challenge-card" id="challenge2">
+                <div class="challenge-header">
+                    <span class="challenge-number">2</span>
+                    <h2>🧪 Testing</h2>
+                    <span class="badge">PIT STOP</span>
+                </div>
+                <p class="challenge-desc">Enterprise software demands rigorous testing. Use Copilot to build unit tests, integration tests, and edge case coverage.</p>
+                
+                <div class="task-box">
+                    <h3>🎯 Your Mission</h3>
+                    <p>Generate a comprehensive test suite with unit tests covering happy paths, edge cases, and failure scenarios.</p>
+                </div>
+
+                <div class="steps-box">
+                    <h3>📝 Steps to Complete</h3>
+                    <ol class="setup-steps">
+                        <li><strong>Stay on your branch</strong> — continue on the same branch you created in Challenge 1</li>
+                        <li><strong>Open GitHub Copilot Chat</strong> in VS Code (<code>Ctrl+Shift+I</code>)</li>
+                        <li><strong>Copy a sample prompt</strong> below and paste it into Copilot Chat</li>
+                        <li><strong>Review and apply</strong> the generated tests to your project</li>
+                        <li><strong>Commit and push</strong> your changes to the branch</li>
+                    </ol>
+                </div>
+
+                <div class="prompts-box">
+                    <h3>💡 Sample Prompts</h3>
+                    <div class="prompt-item" onclick="copyPrompt(this)">
+                        <code>Write unit tests for the SnakeCashRush class in main.py covering snake movement, collision detection, and score tracking</code>
+                        <span class="copy-hint">📋 Click to copy</span>
+                    </div>
+                    <div class="prompt-item" onclick="copyPrompt(this)">
+                        <code>Create tests for the spawn_cash and reset_state methods to verify the game initializes correctly and cash doesn't spawn on the snake</code>
+                        <span class="copy-hint">📋 Click to copy</span>
+                    </div>
+                    <div class="prompt-note">
+                        <p>💡 <strong>Note:</strong> These are only sample prompts. Feel free to change and update them to make them more valuable towards your sprint race!</p>
+                    </div>
+                </div>
+
+                <details class="collapsible-section">
+                    <summary>✅ Help: Committing and pushing your changes</summary>
+                    <div class="code-block">
+                        <pre><code># Stage all changes
+git add .
+
+# Commit with a meaningful message
+git commit -m "test: add comprehensive test suite using Copilot"
+
+# Push to your branch
+git push -u origin initials-surname</code></pre>
+                    </div>
+                </details>
+
+                <button class="back-btn" onclick="advanceChallenge(1)">⬅️ Previous</button>
+                <button class="next-btn" onclick="advanceChallenge(3)">Next Challenge ➡️</button>
+            </section>
+
+            <!-- Challenge 3 -->
+            <section class="challenge-card" id="challenge3">
+                <div class="challenge-header">
+                    <span class="challenge-number">3</span>
+                    <h2>✨ Code Readability</h2>
+                    <span class="badge">TURBO</span>
+                </div>
+                <p class="challenge-desc">Readable code is maintainable code. Use Copilot to refactor, rename, and restructure for clarity and consistency.</p>
+                
+                <div class="task-box">
+                    <h3>🎯 Your Mission</h3>
+                    <p>Refactor code for clarity — meaningful names, consistent patterns, SOLID principles, and clean architecture.</p>
+                </div>
+
+                <div class="steps-box">
+                    <h3>📝 Steps to Complete</h3>
+                    <ol class="setup-steps">
+                        <li><strong>Stay on your branch</strong> — continue on the same branch you created in Challenge 1</li>
+                        <li><strong>Open GitHub Copilot Chat</strong> in VS Code (<code>Ctrl+Shift+I</code>)</li>
+                        <li><strong>Copy a sample prompt</strong> below and paste it into Copilot Chat</li>
+                        <li><strong>Review and apply</strong> the refactored code to your project</li>
+                        <li><strong>Commit and push</strong> your changes to the branch</li>
+                    </ol>
+                </div>
+
+                <div class="prompts-box">
+                    <h3>💡 Sample Prompts</h3>
+                    <div class="prompt-item" onclick="copyPrompt(this)">
+                        <code>Refactor main.py to use clearer variable names and extract the drawing logic into separate methods for better readability</code>
+                        <span class="copy-hint">📋 Click to copy</span>
+                    </div>
+                    <div class="prompt-item" onclick="copyPrompt(this)">
+                        <code>Simplify the handle_keydown method and rename constants in main.py to be more descriptive and self-documenting</code>
+                        <span class="copy-hint">📋 Click to copy</span>
+                    </div>
+                    <div class="prompt-note">
+                        <p>💡 <strong>Note:</strong> These are only sample prompts. Feel free to change and update them to make them more valuable towards your sprint race!</p>
+                    </div>
+                </div>
+
+                <details class="collapsible-section">
+                    <summary>✅ Help: Committing and pushing your changes</summary>
+                    <div class="code-block">
+                        <pre><code># Stage all changes
+git add .
+
+# Commit with a meaningful message
+git commit -m "refactor: improve code readability using Copilot"
+
+# Push to your branch
+git push -u origin initials-surname</code></pre>
+                    </div>
+                </details>
+
+                <button class="back-btn" onclick="advanceChallenge(2)">⬅️ Previous</button>
+                <button class="next-btn" onclick="advanceChallenge(4)">Next Challenge ➡️</button>
+            </section>
+
+            <!-- Challenge 4 -->
+            <section class="challenge-card" id="challenge4">
+                <div class="challenge-header">
+                    <span class="challenge-number">4</span>
+                    <h2>🛡️ Exception Handling</h2>
+                    <span class="badge">FINISH LINE</span>
+                </div>
+                <p class="challenge-desc">Production-ready software handles failures gracefully. Use Copilot to implement robust error handling and resilience patterns.</p>
+                
+                <div class="task-box">
+                    <h3>🎯 Your Mission</h3>
+                    <p>Add proper exception handling with custom exceptions, retry policies, circuit breakers, and meaningful error messages.</p>
+                </div>
+
+                <div class="steps-box">
+                    <h3>📝 Steps to Complete</h3>
+                    <ol class="setup-steps">
+                        <li><strong>Stay on your branch</strong> — continue on the same branch you created in Challenge 1</li>
+                        <li><strong>Open GitHub Copilot Chat</strong> in VS Code (<code>Ctrl+Shift+I</code>)</li>
+                        <li><strong>Copy a sample prompt</strong> below and paste it into Copilot Chat</li>
+                        <li><strong>Review and apply</strong> the exception handling code to your project</li>
+                        <li><strong>Commit and push</strong> your changes to the branch</li>
+                    </ol>
+                </div>
+
+                <div class="prompts-box">
+                    <h3>💡 Sample Prompts</h3>
+                    <div class="prompt-item" onclick="copyPrompt(this)">
+                        <code>Add error handling to main.py for cases like canvas not found, invalid key inputs, and failed score persistence</code>
+                        <span class="copy-hint">📋 Click to copy</span>
+                    </div>
+                    <div class="prompt-item" onclick="copyPrompt(this)">
+                        <code>Add try-except blocks to the game loop and DOM interactions in main.py with meaningful error messages and graceful fallbacks</code>
+                        <span class="copy-hint">📋 Click to copy</span>
+                    </div>
+                    <div class="prompt-note">
+                        <p>💡 <strong>Note:</strong> These are only sample prompts. Feel free to change and update them to make them more valuable towards your sprint race!</p>
+                    </div>
+                </div>
+
+                <details class="collapsible-section">
+                    <summary>✅ Help: Committing and pushing your changes</summary>
+                    <div class="code-block">
+                        <pre><code># Stage all changes
+git add .
+
+# Commit with a meaningful message
+git commit -m "fix: add robust exception handling using Copilot"
+
+# Push to your branch
+git push -u origin initials-surname</code></pre>
+                    </div>
+                </details>
+
+                <button class="back-btn" onclick="advanceChallenge(3)">⬅️ Previous</button>
+                <button class="finish-btn" onclick="finishRace()">🏁 Finish Race!</button>
+            </section>
+        </div>
+
+        <!-- Victory Modal -->
+        <div class="victory-modal" id="victoryModal">
+            <div class="victory-content">
+                <h2>🏆 RACE COMPLETE!</h2>
+                <div class="trophy">🎉🏎️🏁</div>
+                <p>You've mastered all 4 enterprise challenges with GitHub Copilot!</p>
+                <div class="stats">
+                    <div class="stat">📄 Documentation</div>
+                    <div class="stat">🧪 Testing</div>
+                    <div class="stat">✨ Readability</div>
+                    <div class="stat">🛡️ Exception Handling</div>
+                </div>
+                <button class="restart-btn" onclick="restartRace()">🔄 Race Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,509 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #1a1f2b 100%);
+    color: #e6edf3;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.race-track {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
+/* Header */
+.hero {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.hero h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(90deg, #58a6ff, #f78166, #d2a8ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    color: #8b949e;
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Progress Bar */
+.progress-bar {
+    width: 100%;
+    height: 12px;
+    background: #21262d;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #30363d;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #3fb950, #58a6ff, #d2a8ff, #f78166);
+    border-radius: 6px;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-text {
+    margin-top: 0.5rem;
+    color: #8b949e;
+    font-size: 0.9rem;
+}
+
+/* Race Lane */
+.race-container {
+    margin: 2rem 0;
+    padding: 1rem;
+    background: #161b22;
+    border-radius: 12px;
+    border: 1px solid #30363d;
+}
+
+.race-lane {
+    position: relative;
+    height: 60px;
+    display: flex;
+    align-items: center;
+}
+
+.car {
+    position: absolute;
+    left: 0%;
+    font-size: 2rem;
+    transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2;
+    filter: drop-shadow(0 0 8px rgba(88, 166, 255, 0.5));
+    transform: scaleX(-1);
+}
+
+.checkpoints {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 0 2rem;
+    position: relative;
+}
+
+.checkpoints::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 2rem;
+    right: 2rem;
+    height: 4px;
+    background: repeating-linear-gradient(90deg, #30363d 0px, #30363d 10px, transparent 10px, transparent 20px);
+    transform: translateY(-50%);
+}
+
+.checkpoint {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #21262d;
+    border: 2px solid #30363d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+
+.checkpoint.active {
+    background: #58a6ff;
+    border-color: #58a6ff;
+    box-shadow: 0 0 12px rgba(88, 166, 255, 0.5);
+}
+
+.checkpoint.completed {
+    background: #3fb950;
+    border-color: #3fb950;
+    box-shadow: 0 0 12px rgba(63, 185, 80, 0.5);
+}
+
+.finish-flag {
+    font-size: 1.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* Challenge Cards */
+.challenges-wrapper {
+    position: relative;
+}
+
+.challenge-card {
+    display: none;
+    background: #161b22;
+    border-radius: 16px;
+    padding: 2rem;
+    border: 1px solid #30363d;
+    animation: slideIn 0.5s ease;
+}
+
+.challenge-card.active {
+    display: block;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.challenge-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.challenge-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #58a6ff, #d2a8ff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.challenge-header h2 {
+    font-size: 1.5rem;
+    flex-grow: 1;
+}
+
+.badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    background: #f7816633;
+    color: #f78166;
+    border: 1px solid #f7816655;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.challenge-desc {
+    color: #8b949e;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+/* Task Box */
+.task-box {
+    background: #0d1117;
+    border: 1px solid #238636;
+    border-radius: 10px;
+    padding: 1.2rem;
+    margin-bottom: 1.5rem;
+}
+
+.task-box h3 {
+    color: #3fb950;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.task-box p {
+    color: #c9d1d9;
+    font-size: 0.95rem;
+}
+
+/* Prompts Box */
+.prompts-box {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 1.2rem;
+    margin-bottom: 1.5rem;
+}
+
+.prompts-box h3 {
+    color: #d2a8ff;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.prompt-item {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    margin-bottom: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.prompt-item:hover {
+    border-color: #58a6ff;
+    background: #1c2128;
+    transform: translateX(4px);
+}
+
+.prompt-item:last-child {
+    margin-bottom: 0;
+}
+
+.prompt-item code {
+    color: #c9d1d9;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    display: block;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+}
+
+.copy-hint {
+    display: block;
+    font-size: 0.75rem;
+    color: #58a6ff;
+    margin-top: 0.4rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.prompt-item:hover .copy-hint {
+    opacity: 1;
+}
+
+.prompt-item.copied {
+    border-color: #3fb950;
+}
+
+.prompt-item.copied .copy-hint {
+    opacity: 1;
+    color: #3fb950;
+}
+
+/* Buttons */
+button {
+    padding: 0.8rem 1.8rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 0.5rem;
+}
+
+.next-btn {
+    background: linear-gradient(135deg, #58a6ff, #388bfd);
+    color: #fff;
+    float: right;
+}
+
+.next-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(88, 166, 255, 0.4);
+}
+
+.back-btn {
+    background: #21262d;
+    color: #8b949e;
+    border: 1px solid #30363d;
+}
+
+.back-btn:hover {
+    background: #30363d;
+    color: #e6edf3;
+}
+
+.finish-btn {
+    background: linear-gradient(135deg, #3fb950, #2ea043);
+    color: #fff;
+    float: right;
+    font-size: 1.1rem;
+}
+
+.finish-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(63, 185, 80, 0.4);
+}
+
+.restart-btn {
+    background: linear-gradient(135deg, #f78166, #da3633);
+    color: #fff;
+    margin-top: 1.5rem;
+}
+
+.restart-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(247, 129, 102, 0.4);
+}
+
+/* Victory Modal */
+.victory-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.victory-modal.show {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.victory-content {
+    background: #161b22;
+    border: 2px solid #3fb950;
+    border-radius: 20px;
+    padding: 3rem;
+    text-align: center;
+    max-width: 500px;
+    animation: scaleIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.victory-content h2 {
+    font-size: 2rem;
+    color: #3fb950;
+    margin-bottom: 1rem;
+}
+
+.trophy {
+    font-size: 3rem;
+    margin: 1rem 0;
+}
+
+.victory-content p {
+    color: #8b949e;
+    margin-bottom: 1.5rem;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.stat {
+    background: #0d1117;
+    padding: 0.6rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    border: 1px solid #30363d;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .hero h1 { font-size: 1.5rem; }
+    .challenge-card { padding: 1.2rem; }
+    .race-track { padding: 1rem; }
+    .checkpoints { padding: 0 1rem; }
+}
+
+/* Links */
+.prompts-box a, .task-box a {
+    color: #58a6ff;
+    text-decoration: none;
+    border-bottom: 1px dashed #58a6ff;
+    transition: color 0.2s;
+}
+
+.prompts-box a:hover, .task-box a:hover {
+    color: #79c0ff;
+    border-bottom-color: #79c0ff;
+}
+
+/* Collapsible section */
+.collapsible-section {
+    margin-top: 1rem;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.collapsible-section summary {
+    padding: 0.8rem 1rem;
+    cursor: pointer;
+    font-weight: 600;
+    color: #d2a8ff;
+    background: #161b22;
+    transition: background 0.2s;
+}
+
+.collapsible-section summary:hover {
+    background: #1c2128;
+}
+
+.collapsible-section > .code-block,
+.collapsible-section > p {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.collapsible-section > .code-block {
+    margin-top: 0.8rem;
+}
+
+/* Steps Box */
+.steps-box {
+    background: #0d1117;
+    border: 1px solid #58a6ff;
+    border-radius: 10px;
+    padding: 1.2rem;
+    margin-bottom: 1.5rem;
+}
+
+.steps-box h3 {
+    color: #58a6ff;
+    margin-bottom: 0.8rem;
+    font-size: 1rem;
+}
+
+.steps-box .collapsible-section {
+    margin-top: 1rem;
+}
+
+/* Prompt Note */
+.prompt-note {
+    background: #1c2128;
+    border: 1px dashed #d29922;
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    margin-top: 0.8rem;
+}
+
+.prompt-note p {
+    color: #d29922;
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
