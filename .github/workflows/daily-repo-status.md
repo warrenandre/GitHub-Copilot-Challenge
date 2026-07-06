@@ -4,7 +4,8 @@ description: |
   evaluates the codebase for documentation, testing, CI/CD, and exception
   handling, then publishes a scored summary as a GitHub issue.
 
-on: push
+on:
+  workflow_dispatch:
 permissions:
   contents: read
   issues: read
