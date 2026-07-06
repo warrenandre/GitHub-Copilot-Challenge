@@ -22,7 +22,7 @@ A hands-on hackathon challenge where participants use GitHub Copilot to apply en
 ## How It Works
 
 1. Clone this repository to your local machine
-2. Visit the [Challenge Tracker](https://app-n5cfuggj2qkey.azurewebsites.net/) for step-by-step instructions
+2. Visit the [Challenge Tracker](https://app-n5cfuggj2qkeys.azurewebsites.net/) for step-by-step instructions
 3. Create a branch with your initials and surname (e.g. `jd-doe`)
 4. Open the Snake Cash Rush project in VS Code with GitHub Copilot
 5. Complete each challenge using Copilot Chat prompts
