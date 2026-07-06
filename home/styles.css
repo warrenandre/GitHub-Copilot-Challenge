@@ -97,6 +97,25 @@ body {
     background: #161b22;
     border-radius: 12px;
     border: 1px solid #30363d;
+    position: relative;
+    overflow: hidden;
+}
+
+.race-container::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 23 23'%3E%3Cpath fill='%23ffffff' d='M1 1h10v10H1zM12 1h10v10H12zM1 12h10v10H1zM12 12h10v10H12z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 0;
 }
 
 .race-lane {
