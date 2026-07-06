@@ -1,8 +1,8 @@
 ---
 description: |
   This workflow creates repository enterprise-readiness score reports. It
-  evaluates the codebase for documentation, testing, CI/CD, and exception
-  handling, then publishes a scored summary as a GitHub issue.
+  evaluates the codebase for documentation, custom instructions, spec-driven
+  development agent, and testing, then publishes a scored summary as a GitHub issue.
 
 on: push
 permissions:
@@ -42,7 +42,7 @@ The issue title MUST always follow this exact format: `[repo-score] Branch: <bra
 ## What to include
 
 - An overall enterprise-readiness score out of 100 for the current repository state
-- A category breakdown covering documentation, testing, CI/CD, and exception handling
+- A category breakdown covering documentation, custom instructions, spec-driven development agent, and testing
 - The strongest signals that the repository is enterprise-ready
 - The biggest gaps preventing the repository from being enterprise-ready
 - Exactly 3 high-value recommendations for improving the score
@@ -50,14 +50,17 @@ The issue title MUST always follow this exact format: `[repo-score] Branch: <bra
 
 ## Scoring model
 
-- Documentation: 25 points
-  Look for a useful README, docstrings on classes and methods, inline comments explaining intent, setup instructions, architecture notes, or contribution guidance.
-- Testing: 30 points
-  Look for automated tests, test directories, unit tests, integration tests, edge case coverage, test structure, or test runner configuration.
-- CI/CD: 20 points
-  Look for CI/CD pipeline definitions, automated linting, test execution on push, build validation, deployment automation, or environment promotion signals.
-- Exception Handling: 25 points
-  Look for try-except blocks, meaningful error messages, graceful fallbacks, input validation, defensive coding, custom exception classes, or error logging.
+- Documentation (Challenge 1): 25 points
+  Look for a useful README in `games/snake/`, docstrings on classes and methods in `main.py`, inline comments explaining intent, setup instructions, architecture notes, or gameplay guidance. Award full points when a new developer could understand and run the project using only the documentation.
+
+- Custom Instructions (Challenge 2): 25 points
+  Look for a `.github/copilot-instructions.md` file. Award points based on: file exists (5 pts), covers naming conventions and code style (7 pts), covers architectural patterns and project-specific context like tech stack and dependencies (7 pts), and evidence that Copilot-generated code follows the defined standards (6 pts).
+
+- Spec-Driven Development Agent (Challenge 3): 30 points
+  Look for a custom agent file at `.github/agents/spec-driven-dev.agent.md` or similar path. Award points based on: agent file exists with a well-defined persona and phased workflow (7 pts), Phase 1 intent document exists with goal, constraints and criteria (6 pts), Phase 2 design document exists with architecture and components (6 pts), Phase 3 tasks document exists with actionable task breakdown (5 pts), executive summary document exists suitable for stakeholders (6 pts). Spec documents should be in a `specs/` folder with `intent.md`, `design.md`, `tasks.md`, and `summary.md`.
+
+- Testing (Challenge 4): 20 points
+  Look for test files (e.g. `games/snake/tests/test_main.py`). Award points based on: test file exists with meaningful test cases (4 pts), tests cover happy paths like movement and scoring (5 pts), tests cover edge cases like collisions and boundaries (5 pts), tests pass when executed (3 pts), tests are well-named describing the behavior they verify (3 pts).
 
 ## Report format
 
@@ -69,6 +72,7 @@ Use GitHub-flavored markdown and keep the visible content concise.
 
 ### Category Breakdown
 - One bullet per category with score, strongest evidence, and biggest missing signal.
+- Format: `**Category Name** (Challenge N): XX/YY — evidence summary`
 
 ### Strengths
 - 2 to 4 concise bullets.
@@ -102,7 +106,11 @@ Use GitHub-flavored markdown and keep the visible content concise.
 1. Determine the pushed branch name from the event context.
 2. Build the report title from the branch name, using the configured issue title prefix automatically.
 3. Inspect the checked-out repository first.
-4. Study the repository structure, documentation, workflows, and configuration files.
+4. Study the repository structure looking specifically for:
+   - README and docstrings (Challenge 1: Documentation)
+   - `.github/copilot-instructions.md` (Challenge 2: Custom Instructions)
+   - `.github/agents/*.agent.md` and `specs/` folder contents (Challenge 3: Spec-Driven Development Agent)
+   - Test files in `games/snake/tests/` or similar (Challenge 4: Testing)
 5. Use GitHub reads when needed to find an existing open issue with the same branch-based title.
 6. Score the repository using only evidence present in the codebase or repository metadata.
 7. Summarize the strongest enterprise-ready signals and the biggest gaps.

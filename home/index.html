@@ -42,7 +42,7 @@
 
                 <div class="task-box">
                     <h3>🎯 What Is This Challenge?</h3>
-                    <p>You'll race through 4 enterprise software challenges using <strong>GitHub Copilot</strong> as your AI pair programmer. Each challenge focuses on a critical pillar of production-ready software: documentation, testing, CI/CD, and exception handling.</p>
+                    <p>You'll race through 4 enterprise software challenges using <strong>GitHub Copilot</strong> as your AI pair programmer. Each challenge focuses on a critical pillar of production-ready software: documentation, custom instructions, custom agents, and testing.</p>
                     <p style="margin-top: 0.8rem;">Your mission is to apply Copilot's AI capabilities to transform the <strong>Snake Cash Rush</strong> game project into enterprise-grade code — one challenge at a time.</p>
                 </div>
 
@@ -117,11 +117,16 @@ python -m http.server 8000
                     <h2>📄 Documentation</h2>
                     <span class="badge">START</span>
                 </div>
-                <p class="challenge-desc">Great software starts with great documentation. Use Copilot to generate clear, comprehensive docs for your application.</p>
+                <p class="challenge-desc">Great software starts with great documentation. Use Copilot to generate clear, comprehensive docs that make your codebase accessible to any team member.</p>
                 
                 <div class="task-box">
                     <h3>🎯 Your Mission</h3>
-                    <p>Generate meaningful documentation for your codebase including README, API docs, and inline comments.</p>
+                    <p>Generate meaningful documentation for your codebase including a README, inline docstrings, and code comments that explain the "why" behind decisions.</p>
+                </div>
+
+                <div class="task-box" style="border-left-color: #58a6ff;">
+                    <h3>🏢 Enterprise Value</h3>
+                    <p>Documentation reduces onboarding time for new developers, enables knowledge transfer across teams, and ensures maintainability. In enterprise environments, well-documented code is the difference between a project that scales and one that becomes technical debt.</p>
                 </div>
 
                 <div class="steps-box">
@@ -129,8 +134,9 @@ python -m http.server 8000
                     <ol class="setup-steps">
                         <li><strong>Create a new branch</strong> — name it with your initials and surname (e.g. <code>jd-doe</code>)</li>
                         <li><strong>Open GitHub Copilot Chat</strong> in VS Code (<code>Ctrl+Shift+I</code>)</li>
-                        <li><strong>Copy a sample prompt</strong> below and paste it into Copilot Chat</li>
-                        <li><strong>Review and apply</strong> the generated documentation to your project</li>
+                        <li><strong>Use Copilot</strong> to generate a comprehensive README for the Snake Cash Rush game</li>
+                        <li><strong>Add docstrings</strong> to all methods in <code>main.py</code> using Copilot</li>
+                        <li><strong>Add inline comments</strong> to complex logic sections explaining the "why"</li>
                         <li><strong>Commit and push</strong> your changes to the branch</li>
                     </ol>
 
@@ -175,6 +181,16 @@ git push -u origin initials-surname</code></pre>
                     </div>
                 </div>
 
+                <div class="task-box" style="border-left-color: #3fb950;">
+                    <h3>✅ Success Criteria</h3>
+                    <ul class="tools-list">
+                        <li>A <strong>README.md</strong> exists in <code>games/snake/</code> with setup instructions, gameplay guide, and project structure</li>
+                        <li>All public methods in <code>main.py</code> have <strong>docstrings</strong> with parameters and return values documented</li>
+                        <li>Complex logic sections have <strong>inline comments</strong> explaining intent</li>
+                        <li>A new developer could understand and run the project using only the documentation</li>
+                    </ul>
+                </div>
+
                 <button class="back-btn" onclick="advanceChallenge(0)">⬅️ Pit Stop</button>
                 <button class="next-btn" onclick="advanceChallenge(2)">Next Challenge ➡️</button>
             </section>
@@ -183,14 +199,184 @@ git push -u origin initials-surname</code></pre>
             <section class="challenge-card" id="challenge2">
                 <div class="challenge-header">
                     <span class="challenge-number">2</span>
-                    <h2>🧪 Testing</h2>
+                    <h2>⚙️ Custom Instructions</h2>
                     <span class="badge">PIT STOP</span>
                 </div>
-                <p class="challenge-desc">Enterprise software demands rigorous testing. Use Copilot to build unit tests, integration tests, and edge case coverage.</p>
+                <p class="challenge-desc">Tailor GitHub Copilot to your team's coding standards and conventions. Custom instructions ensure Copilot generates code that aligns with your enterprise patterns from the start.</p>
                 
                 <div class="task-box">
                     <h3>🎯 Your Mission</h3>
-                    <p>Generate a comprehensive test suite with unit tests covering happy paths, edge cases, and failure scenarios.</p>
+                    <p>Create a <code>.github/copilot-instructions.md</code> file that configures Copilot to follow your project's coding standards, naming conventions, and architectural patterns.</p>
+                </div>
+
+                <div class="task-box" style="border-left-color: #58a6ff;">
+                    <h3>🏢 Enterprise Value</h3>
+                    <p>Custom instructions enforce consistency across large teams — ensuring every developer gets AI suggestions that match your organization's standards, reducing code review cycles, and maintaining architectural coherence across microservices and repositories.</p>
+                </div>
+
+                <div class="steps-box">
+                    <h3>📝 Steps to Complete</h3>
+                    <ol class="setup-steps">
+                        <li><strong>Stay on your branch</strong> — continue on the same branch you created in Challenge 1</li>
+                        <li><strong>Create</strong> a <code>.github/copilot-instructions.md</code> file in the repo root</li>
+                        <li><strong>Define coding standards</strong> — specify naming conventions, error handling patterns, and documentation expectations</li>
+                        <li><strong>Add project context</strong> — describe the tech stack, architecture decisions, and preferred libraries</li>
+                        <li><strong>Test it</strong> — ask Copilot to generate code and verify it follows your instructions</li>
+                        <li><strong>Commit and push</strong> your changes to the branch</li>
+                    </ol>
+                </div>
+
+                <div class="prompts-box">
+                    <h3>💡 Sample Prompts</h3>
+                    <div class="prompt-item" onclick="copyPrompt(this)">
+                        <code>Create a .github/copilot-instructions.md file that tells Copilot to use Python type hints, follow PEP 8 naming conventions, and always include docstrings with Args and Returns sections</code>
+                        <span class="copy-hint">📋 Click to copy</span>
+                    </div>
+                    <div class="prompt-item" onclick="copyPrompt(this)">
+                        <code>Add custom instructions for Copilot specifying that this is a PyScript browser game, DOM interactions should use js module imports, and all game state should be encapsulated in the SnakeCashRush class</code>
+                        <span class="copy-hint">📋 Click to copy</span>
+                    </div>
+                    <div class="prompt-note">
+                        <p>💡 <strong>Note:</strong> These are only sample prompts. Feel free to change and update them to make them more valuable towards your sprint race!</p>
+                    </div>
+                </div>
+
+                <details class="collapsible-section">
+                    <summary>✅ Help: Committing and pushing your changes</summary>
+                    <div class="code-block">
+                        <pre><code># Stage all changes
+git add .
+
+# Commit with a meaningful message
+git commit -m "chore: add custom Copilot instructions for team standards"
+
+# Push to your branch
+git push -u origin initials-surname</code></pre>
+                    </div>
+                </details>
+
+                <div class="task-box" style="border-left-color: #3fb950;">
+                    <h3>✅ Success Criteria</h3>
+                    <ul class="tools-list">
+                        <li>A <strong><code>.github/copilot-instructions.md</code></strong> file exists with clear, actionable instructions</li>
+                        <li>Instructions cover <strong>naming conventions</strong>, <strong>code style</strong>, and <strong>architectural patterns</strong></li>
+                        <li>Instructions include <strong>project-specific context</strong> (tech stack, dependencies, patterns)</li>
+                        <li>Copilot-generated code <strong>follows the defined standards</strong> when tested with a new prompt</li>
+                    </ul>
+                </div>
+
+                <button class="back-btn" onclick="advanceChallenge(1)">⬅️ Previous</button>
+                <button class="next-btn" onclick="advanceChallenge(3)">Next Challenge ➡️</button>
+            </section>
+
+            <!-- Challenge 3 -->
+            <section class="challenge-card" id="challenge3">
+                <div class="challenge-header">
+                    <span class="challenge-number">3</span>
+                    <h2>🤖 Custom Agent — Spec-Driven Development</h2>
+                    <span class="badge">TURBO</span>
+                </div>
+                <p class="challenge-desc">Build a custom Copilot agent that drives Spec-Driven Development (SDD). This agent guides users through a structured 3-phase workflow to produce comprehensive spec documents before any code is written.</p>
+                
+                <div class="task-box">
+                    <h3>🎯 Your Mission</h3>
+                    <p>Create a custom Copilot Chat agent (using a <code>.agent.md</code> file) that runs a 3-phase spec-driven development workflow. Given a user prompt, the agent produces spec documents through phases: <strong>Intent</strong>, <strong>Design</strong>, and <strong>Tasks + Executive Summary</strong>.</p>
+                </div>
+
+                <div class="task-box" style="border-left-color: #58a6ff;">
+                    <h3>🏢 Enterprise Value</h3>
+                    <p>Spec-Driven Development ensures alignment between stakeholders and engineers before code is written — reducing rework, miscommunication, and scope creep. A custom agent that automates spec generation encodes your organization's planning standards into a repeatable process, accelerating delivery while maintaining governance and traceability.</p>
+                </div>
+
+                <div class="steps-box">
+                    <h3>📝 Steps to Complete</h3>
+                    <ol class="setup-steps">
+                        <li><strong>Stay on your branch</strong> — continue on the same branch you created in Challenge 1</li>
+                        <li><strong>Create</strong> a <code>.github/agents/spec-driven-dev.agent.md</code> file defining the custom agent</li>
+                        <li><strong>Define 3 phases</strong> the agent must execute sequentially:
+                            <ul style="margin-top: 0.5rem;">
+                                <li><strong>Phase 1 — Intent:</strong> Capture the user's goal, constraints, and acceptance criteria</li>
+                                <li><strong>Phase 2 — Design:</strong> Produce a technical design covering architecture, components, and data flow</li>
+                                <li><strong>Phase 3 — Tasks &amp; Summary:</strong> Break the design into actionable tasks and produce an executive summary</li>
+                            </ul>
+                        </li>
+                        <li><strong>Test the agent</strong> — invoke it in Copilot Chat with a feature request and verify it produces all spec documents</li>
+                        <li><strong>Save the generated specs</strong> as markdown files in a <code>specs/</code> folder</li>
+                        <li><strong>Commit and push</strong> your changes to the branch</li>
+                    </ol>
+                </div>
+
+                <div class="prompts-box">
+                    <h3>💡 Sample Prompts</h3>
+                    <p style="margin-bottom: 0.8rem; color: #c9d1d9;">Use this prompt in Copilot Chat to create your spec-driven development agent:</p>
+                    <div class="prompt-item" onclick="copyPrompt(this)">
+                        <code>Create a custom GitHub Copilot agent file at .github/agents/spec-driven-dev.agent.md. This agent is a Spec-Driven Development assistant that takes a user's feature request and runs through the following phases sequentially:
+
+Phase 1 — Intent: Ask clarifying questions, then produce an intent.md capturing the goal, problem statement, target users, constraints, and acceptance criteria.
+
+Phase 2 — Design: Based on the intent, produce a design.md with the technical architecture, component breakdown, data flow, API contracts, and key design decisions.
+
+Phase 3 — Tasks & Summary: Break the design into an ordered task list in tasks.md with clear deliverables per task, then produce a summary.md executive summary suitable for stakeholders covering scope, approach, risks, and estimated effort.
+
+The agent should save all outputs as markdown files in a specs/[feature-name]/ folder. Each phase must build on the previous phase's output. The agent should confirm with the user before proceeding to the next phase.</code>
+                        <span class="copy-hint">📋 Click to copy</span>
+                    </div>
+                    <p style="margin: 1rem 0 0.5rem; color: #c9d1d9;">Then test your agent with a prompt like this:</p>
+                    <div class="prompt-item" onclick="copyPrompt(this)">
+                        <code>@spec-driven-dev I want to add a power-up system to the Snake Cash Rush game where the snake can collect special items that give temporary abilities like speed boost, invincibility, or double points</code>
+                        <span class="copy-hint">📋 Click to copy</span>
+                    </div>
+                    <div class="prompt-note">
+                        <p>💡 <strong>Note:</strong> These are only sample prompts. Feel free to change and update them to make them more valuable towards your sprint race!</p>
+                    </div>
+                </div>
+
+                <details class="collapsible-section">
+                    <summary>✅ Help: Committing and pushing your changes</summary>
+                    <div class="code-block">
+                        <pre><code># Stage all changes
+git add .
+
+# Commit with a meaningful message
+git commit -m "feat: add spec-driven development custom agent for Copilot"
+
+# Push to your branch
+git push -u origin initials-surname</code></pre>
+                    </div>
+                </details>
+
+                <div class="task-box" style="border-left-color: #3fb950;">
+                    <h3>✅ Success Criteria</h3>
+                    <ul class="tools-list">
+                        <li>A <strong><code>.github/agents/spec-driven-dev.agent.md</code></strong> file exists with a well-defined agent persona and phased workflow</li>
+                        <li>The agent defines <strong>3 clear phases</strong>: Intent, Design, and Tasks + Executive Summary</li>
+                        <li>Generated spec documents exist in a <strong><code>specs/</code></strong> folder: <code>intent.md</code>, <code>design.md</code>, <code>tasks.md</code>, <code>summary.md</code></li>
+                        <li>The specs are <strong>coherent and traceable</strong> — each phase builds on the previous one</li>
+                        <li>The agent can be <strong>invoked with any feature request</strong> and produces consistent, structured output</li>
+                    </ul>
+                </div>
+
+                <button class="back-btn" onclick="advanceChallenge(2)">⬅️ Previous</button>
+                <button class="next-btn" onclick="advanceChallenge(4)">Next Challenge ➡️</button>
+            </section>
+
+            <!-- Challenge 4 -->
+            <section class="challenge-card" id="challenge4">
+                <div class="challenge-header">
+                    <span class="challenge-number">4</span>
+                    <h2>🧪 Testing</h2>
+                    <span class="badge">FINISH LINE</span>
+                </div>
+                <p class="challenge-desc">Enterprise software demands rigorous testing. Use Copilot to build a comprehensive test suite that validates your game logic and catches regressions before they reach production.</p>
+                
+                <div class="task-box">
+                    <h3>🎯 Your Mission</h3>
+                    <p>Generate a comprehensive test suite with unit tests covering happy paths, edge cases, and failure scenarios for the Snake Cash Rush game.</p>
+                </div>
+
+                <div class="task-box" style="border-left-color: #58a6ff;">
+                    <h3>🏢 Enterprise Value</h3>
+                    <p>Automated tests are the safety net that enables rapid iteration without fear. In enterprise environments, comprehensive test coverage reduces production incidents, enables confident refactoring, supports CI/CD pipelines, and provides living documentation of expected behavior — ultimately protecting revenue and customer trust.</p>
                 </div>
 
                 <div class="steps-box">
@@ -198,8 +384,9 @@ git push -u origin initials-surname</code></pre>
                     <ol class="setup-steps">
                         <li><strong>Stay on your branch</strong> — continue on the same branch you created in Challenge 1</li>
                         <li><strong>Open GitHub Copilot Chat</strong> in VS Code (<code>Ctrl+Shift+I</code>)</li>
-                        <li><strong>Copy a sample prompt</strong> below and paste it into Copilot Chat</li>
-                        <li><strong>Review and apply</strong> the generated tests to your project</li>
+                        <li><strong>Generate unit tests</strong> for the core game logic (movement, collision, scoring)</li>
+                        <li><strong>Add edge case tests</strong> — boundary conditions, invalid inputs, state transitions</li>
+                        <li><strong>Run the tests</strong> to verify they pass against the current implementation</li>
                         <li><strong>Commit and push</strong> your changes to the branch</li>
                     </ol>
                 </div>
@@ -211,7 +398,7 @@ git push -u origin initials-surname</code></pre>
                         <span class="copy-hint">📋 Click to copy</span>
                     </div>
                     <div class="prompt-item" onclick="copyPrompt(this)">
-                        <code>Create tests for the spawn_cash and reset_state methods to verify the game initializes correctly and cash doesn't spawn on the snake</code>
+                        <code>Create edge case tests for boundary collisions, self-collision, cash spawning in valid positions, and game state reset behavior</code>
                         <span class="copy-hint">📋 Click to copy</span>
                     </div>
                     <div class="prompt-note">
@@ -233,121 +420,16 @@ git push -u origin initials-surname</code></pre>
                     </div>
                 </details>
 
-                <button class="back-btn" onclick="advanceChallenge(1)">⬅️ Previous</button>
-                <button class="next-btn" onclick="advanceChallenge(3)">Next Challenge ➡️</button>
-            </section>
-
-            <!-- Challenge 3 -->
-            <section class="challenge-card" id="challenge3">
-                <div class="challenge-header">
-                    <span class="challenge-number">3</span>
-                    <h2>⚙️ CI/CD</h2>
-                    <span class="badge">TURBO</span>
+                <div class="task-box" style="border-left-color: #3fb950;">
+                    <h3>✅ Success Criteria</h3>
+                    <ul class="tools-list">
+                        <li>A <strong>test file</strong> exists (e.g. <code>games/snake/tests/test_main.py</code>) with meaningful test cases</li>
+                        <li>Tests cover <strong>happy paths</strong> — normal gameplay flow, scoring, movement</li>
+                        <li>Tests cover <strong>edge cases</strong> — wall collisions, self-collision, boundary conditions</li>
+                        <li>All tests <strong>pass</strong> when executed with <code>pytest</code></li>
+                        <li>Tests are <strong>well-named</strong> and describe the behavior they verify</li>
+                    </ul>
                 </div>
-                <p class="challenge-desc">Automated pipelines catch issues early and deliver code reliably. Use Copilot to set up continuous integration and deployment workflows for your project.</p>
-                
-                <div class="task-box">
-                    <h3>🎯 Your Mission</h3>
-                    <p>Create a CI/CD pipeline that runs linting, tests, and builds automatically on every push or pull request.</p>
-                </div>
-
-                <div class="steps-box">
-                    <h3>📝 Steps to Complete</h3>
-                    <ol class="setup-steps">
-                        <li><strong>Stay on your branch</strong> — continue on the same branch you created in Challenge 1</li>
-                        <li><strong>Open GitHub Copilot Chat</strong> in VS Code (<code>Ctrl+Shift+I</code>)</li>
-                        <li><strong>Copy a sample prompt</strong> below and paste it into Copilot Chat</li>
-                        <li><strong>Review and apply</strong> the generated pipeline to your project</li>
-                        <li><strong>Commit and push</strong> your changes to the branch</li>
-                    </ol>
-                </div>
-
-                <div class="prompts-box">
-                    <h3>💡 Sample Prompts</h3>
-                    <div class="prompt-item" onclick="copyPrompt(this)">
-                        <code>Create a CI/CD pipeline for this Python project that runs linting and unit tests on every push to any branch</code>
-                        <span class="copy-hint">📋 Click to copy</span>
-                    </div>
-                    <div class="prompt-item" onclick="copyPrompt(this)">
-                        <code>Add a CI pipeline that installs dependencies, runs pytest, and reports test results on pull requests</code>
-                        <span class="copy-hint">📋 Click to copy</span>
-                    </div>
-                    <div class="prompt-note">
-                        <p>💡 <strong>Note:</strong> These are only sample prompts. Feel free to change and update them to make them more valuable towards your sprint race!</p>
-                    </div>
-                </div>
-
-                <details class="collapsible-section">
-                    <summary>✅ Help: Committing and pushing your changes</summary>
-                    <div class="code-block">
-                        <pre><code># Stage all changes
-git add .
-
-# Commit with a meaningful message
-git commit -m "ci: add CI/CD pipeline for linting and testing"
-
-# Push to your branch
-git push -u origin initials-surname</code></pre>
-                    </div>
-                </details>
-
-                <button class="back-btn" onclick="advanceChallenge(2)">⬅️ Previous</button>
-                <button class="next-btn" onclick="advanceChallenge(4)">Next Challenge ➡️</button>
-            </section>
-
-            <!-- Challenge 4 -->
-            <section class="challenge-card" id="challenge4">
-                <div class="challenge-header">
-                    <span class="challenge-number">4</span>
-                    <h2>🛡️ Exception Handling</h2>
-                    <span class="badge">FINISH LINE</span>
-                </div>
-                <p class="challenge-desc">Production-ready software handles failures gracefully. Use Copilot to implement robust error handling and resilience patterns.</p>
-                
-                <div class="task-box">
-                    <h3>🎯 Your Mission</h3>
-                    <p>Add proper exception handling with custom exceptions, retry policies, circuit breakers, and meaningful error messages.</p>
-                </div>
-
-                <div class="steps-box">
-                    <h3>📝 Steps to Complete</h3>
-                    <ol class="setup-steps">
-                        <li><strong>Stay on your branch</strong> — continue on the same branch you created in Challenge 1</li>
-                        <li><strong>Open GitHub Copilot Chat</strong> in VS Code (<code>Ctrl+Shift+I</code>)</li>
-                        <li><strong>Copy a sample prompt</strong> below and paste it into Copilot Chat</li>
-                        <li><strong>Review and apply</strong> the exception handling code to your project</li>
-                        <li><strong>Commit and push</strong> your changes to the branch</li>
-                    </ol>
-                </div>
-
-                <div class="prompts-box">
-                    <h3>💡 Sample Prompts</h3>
-                    <div class="prompt-item" onclick="copyPrompt(this)">
-                        <code>Add error handling to main.py for cases like canvas not found, invalid key inputs, and failed score persistence</code>
-                        <span class="copy-hint">📋 Click to copy</span>
-                    </div>
-                    <div class="prompt-item" onclick="copyPrompt(this)">
-                        <code>Add try-except blocks to the game loop and DOM interactions in main.py with meaningful error messages and graceful fallbacks</code>
-                        <span class="copy-hint">📋 Click to copy</span>
-                    </div>
-                    <div class="prompt-note">
-                        <p>💡 <strong>Note:</strong> These are only sample prompts. Feel free to change and update them to make them more valuable towards your sprint race!</p>
-                    </div>
-                </div>
-
-                <details class="collapsible-section">
-                    <summary>✅ Help: Committing and pushing your changes</summary>
-                    <div class="code-block">
-                        <pre><code># Stage all changes
-git add .
-
-# Commit with a meaningful message
-git commit -m "fix: add robust exception handling using Copilot"
-
-# Push to your branch
-git push -u origin initials-surname</code></pre>
-                    </div>
-                </details>
 
                 <button class="back-btn" onclick="advanceChallenge(3)">⬅️ Previous</button>
                 <button class="finish-btn" onclick="finishRace()">🏁 Finish Race!</button>
@@ -362,9 +444,9 @@ git push -u origin initials-surname</code></pre>
                 <p>You've mastered all 4 enterprise challenges with GitHub Copilot!</p>
                 <div class="stats">
                     <div class="stat">📄 Documentation</div>
+                    <div class="stat">⚙️ Custom Instructions</div>
+                    <div class="stat">🤖 Spec-Driven Development Agent</div>
                     <div class="stat">🧪 Testing</div>
-                    <div class="stat">⚙️ CI/CD</div>
-                    <div class="stat">🛡️ Exception Handling</div>
                 </div>
                 <button class="restart-btn" onclick="restartRace()">🔄 Race Again</button>
             </div>
