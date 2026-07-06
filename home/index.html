@@ -46,6 +46,16 @@
                 </div>
 
                 <div class="prompts-box">
+                    <h3>� Pre-requisites</h3>
+                    <ul class="tools-list">
+                        <li><strong>Git</strong> — <a href="https://git-scm.com/downloads" target="_blank" rel="noopener noreferrer">Download Git</a></li>
+                        <li><strong>Visual Studio Code</strong> — <a href="https://code.visualstudio.com/download" target="_blank" rel="noopener noreferrer">Download VS Code</a></li>
+                        <li><strong>A modern browser</strong> (Edge or Chrome)</li>
+                        <li><strong>Internet access</strong> — PyScript and Google Fonts are fetched from CDNs on first load</li>
+                    </ul>
+                </div>
+
+                <div class="prompts-box">
                     <h3>💻 Clone the Repository</h3>
                     <p style="margin-bottom: 0.8rem; color: #c9d1d9;">First, clone this repository to your local machine and open it in VS Code:</p>
                     <div class="code-block">
@@ -64,7 +74,6 @@ code .</code></pre>
                         <li><strong>Visual Studio Code</strong> — Our code editor</li>
                         <li><strong>GitHub Copilot</strong> — AI pair programmer (Chat, Inline, and Agent mode)</li>
                         <li><strong>GitHub Copilot Chat</strong> — Ask questions, generate code, and get explanations</li>
-                        <li><strong>Python 3.10+</strong> — The Snake game backend runs on Python</li>
                         <li><strong>A modern browser</strong> — Microsoft Edge or Chrome to run the game</li>
                     </ul>
                 </div>
@@ -81,33 +90,21 @@ code .</code></pre>
                     </ol>
                 </div>
 
-                <div class="prompts-box">
-                    <h3>📋 Pre-requisites for the Snake Cash Rush Project</h3>
-                    <ul class="tools-list">
-                        <li><strong>Git</strong> — <a href="https://git-scm.com/downloads" target="_blank" rel="noopener noreferrer">Download Git</a></li>
-                        <li><strong>Visual Studio Code</strong> — <a href="https://code.visualstudio.com/download" target="_blank" rel="noopener noreferrer">Download VS Code</a></li>
-                        <li><strong>Python 3.10 or later</strong> — <a href="https://www.python.org/downloads/" target="_blank" rel="noopener noreferrer">Download Python</a>
-                            <div class="screenshot-hint">
-                                <img src="assets/python-download-btn.png" alt="Click the yellow 'Download Python install manager' button" />
-                                <p class="img-caption">👆 Click the yellow button on the Python downloads page</p>
-                            </div>
-                        </li>
-                        <li><strong>A modern browser</strong> (Edge or Chrome)</li>
-                        <li><strong>Internet access</strong> — PyScript and Google Fonts are fetched from CDNs on first load</li>
-                    </ul>
+                <details class="collapsible-section">
+                    <summary>▶️ Running the Snake Game (optional)</summary>
+                    <div class="code-block">
+                        <pre><code># Pre-requisite: Python 3.10 or later
+# Download from: https://www.python.org/downloads/
 
-                    <details class="collapsible-section">
-                        <summary>▶️ Running the Snake Game (optional)</summary>
-                        <div class="code-block">
-                            <pre><code># Open a terminal in games/snake
+# Open a terminal in games/snake
+cd games/snake
 python -m http.server 8000
 
 # Then open in your browser:
 # http://localhost:8000/src/</code></pre>
-                        </div>
-                        <p style="margin-top: 0.8rem; color: #8b949e; font-size: 0.85rem;">💡 Wait a few seconds for the PyScript runtime to initialize, then click <strong>Start Run</strong> or press an arrow key to begin.</p>
-                    </details>
-                </div>
+                    </div>
+                    <p style="margin-top: 0.8rem; color: #8b949e; font-size: 0.85rem;">💡 Wait a few seconds for the PyScript runtime to initialize, then click <strong>Start Run</strong> or press an arrow key to begin.</p>
+                </details>
 
                 <button class="next-btn" onclick="advanceChallenge(1)">Start the Race ➡️</button>
             </section>
