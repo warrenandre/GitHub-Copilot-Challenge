@@ -38,7 +38,7 @@ source: local/customized-for-repo-score
 
 Create a repository enterprise-readiness score report as a GitHub issue.
 
-Use the branch name in the issue title so the same branch report can be updated on later runs.
+The issue title MUST always follow this exact format: `[repo-score] Branch: <branchname>` where `<branchname>` is the name of the branch being scored. The `[repo-score]` prefix is added automatically — you only need to provide `Branch: <branchname>` as the title.
 
 ## What to include
 
