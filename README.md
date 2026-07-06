@@ -5,12 +5,12 @@ Build enterprise-grade software with GitHub Copilot — race through 4 challenge
 
 ## Challenge Website
 
-**[Launch the Challenge Website](https://github-copilot-challange.azurewebsites.net/)**
+**<a href="https://github-copilot-challange.azurewebsites.net/" target="_blank">Launch the Challenge Website</a>**
 
 
 ## Challenge Tracker
 
-**[Launch the Challenge Tracker](https://githubcopilot-race-challenge.azurewebsites.net/race)**
+**<a href="https://githubcopilot-race-challenge.azurewebsites.net/race" target="_blank">Launch the Challenge Tracker</a>**
 
 ## What Is This?
 
@@ -28,7 +28,7 @@ A hands-on hackathon challenge where participants use GitHub Copilot to apply en
 ## How It Works
 
 1. Clone this repository to your local machine
-2. Visit the [Challenge Website](https://github-copilot-challange.azurewebsites.net/) for step-by-step instructions
+2. Visit the <a href="https://github-copilot-challange.azurewebsites.net/" target="_blank">Challenge Website</a> for step-by-step instructions
 3. Create a branch with your initials and surname (e.g. `jd-doe`)
 4. Open the Snake Cash Rush project in VS Code with GitHub Copilot
 5. Complete each challenge using Copilot Chat prompts
@@ -44,9 +44,9 @@ cd GitHub-Copilot-Challenge
 
 ## Pre-requisites
 
-- [Git](https://git-scm.com/downloads)
-- [Visual Studio Code](https://code.visualstudio.com/download)
-- [Python 3.10+](https://www.python.org/downloads/)
+- <a href="https://git-scm.com/downloads" target="_blank">Git</a>
+- <a href="https://code.visualstudio.com/download" target="_blank">Visual Studio Code</a>
+- <a href="https://www.python.org/downloads/" target="_blank">Python 3.10+</a>
 - GitHub Copilot and GitHub Copilot Chat extensions installed
 - A modern browser (Edge or Chrome)
 
