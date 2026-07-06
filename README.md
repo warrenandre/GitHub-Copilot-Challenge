@@ -4,7 +4,7 @@ Build enterprise-grade software with GitHub Copilot — race through 4 challenge
 
 ## Challenge Tracker
 
-**[Launch the Challenge Tracker](https://app-n5cfuggj2qkey.azurewebsites.net/)**
+**[Launch the Challenge Tracker](https://app-n5cfuggj2qkeys.azurewebsites.net/)**
 
 ## What Is This?
 
