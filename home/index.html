@@ -291,20 +291,21 @@ code .</code></pre>
                     <h3>💡 Sample Prompts</h3>
                     <p style="margin-bottom: 0.8rem; color: #c9d1d9;">Use this prompt in Copilot Chat to create your spec-driven development agent:</p>
                     <div class="prompt-item" onclick="copyPrompt(this)">
-                        <code>Create a custom GitHub Copilot agent file at .github/agents/spec-driven-dev.agent.md. This agent is a Spec-Driven Development assistant that takes a user's feature request and runs through the following phases sequentially:
+                        <code>Create a custom GitHub Copilot agent file at .github/agents/spec-driven-dev.agent.md. This agent is a Spec-Driven Development assistant that takes a user's feature request and runs through the following phases sequentially.
+                            The agent should save all outputs as markdown files in a specs/[feature-name]/ folder. Each phase must build on the previous phase's output. The agent should confirm with the user before proceeding to the next phase:
 
 Phase 1 — Intent: Ask clarifying questions, then produce an intent.md capturing the goal, problem statement, target users, constraints, and acceptance criteria.
 
 Phase 2 — Design: Based on the intent, produce a design.md with the technical architecture, component breakdown, data flow, API contracts, and key design decisions.
 
 Phase 3 — Tasks & Summary: Break the design into an ordered task list in tasks.md with clear deliverables per task, then produce a summary.md executive summary suitable for stakeholders covering scope, approach, risks, and estimated effort.
-
-The agent should save all outputs as markdown files in a specs/[feature-name]/ folder. Each phase must build on the previous phase's output. The agent should confirm with the user before proceeding to the next phase.</code>
+NB Ensure you prompt the user if they want to make changes after each phase and approve it.
+</code>
                         <span class="copy-hint">📋 Click to copy</span>
                     </div>
-                    <p style="margin: 1rem 0 0.5rem; color: #c9d1d9;">Then test your agent with a prompt like this:</p>
+                    <p style="margin: 1rem 0 0.5rem; color: #c9d1d9;">After creating the agent, select it from the <strong>agent selection dropdown</strong> at the top of the Copilot Chat panel (click the model/agent picker and choose <code>spec-driven-dev</code>). Then test your agent with a prompt like this:</p>
                     <div class="prompt-item" onclick="copyPrompt(this)">
-                        <code>@spec-driven-dev I want to add a power-up system to the Snake Cash Rush game where the snake can collect special items that give temporary abilities like speed boost, invincibility, or double points</code>
+                        <code>I want to add a power-up system to the Snake Cash Rush game where the snake can collect special items that give temporary abilities like speed boost, invincibility, or double points</code>
                         <span class="copy-hint">📋 Click to copy</span>
                     </div>
                     <div class="prompt-note">
