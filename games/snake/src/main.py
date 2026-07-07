@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from random import choice
+from enum import Enum
+from random import choice, uniform
 from typing import Iterable
 
 from js import document, window  # type: ignore[import-not-found]
@@ -17,11 +18,36 @@ MIN_TICK_MS = 82
 SPEED_STEP_MS = 5
 SCORE_PER_BILL = 10
 
+POWERUP_DURATION_MS: float = 6000.0
+POWERUP_SPAWN_MIN_MS: float = 8000.0
+POWERUP_SPAWN_MAX_MS: float = 15000.0
+POWERUP_DESPAWN_MS: float = 10000.0
+
+
+class PowerUpType(Enum):
+    """Types of power-ups available in the game."""
+
+    DOUBLE_POINTS = "double_points"
+    INVINCIBILITY = "invincibility"
+
 
 @dataclass(frozen=True)
 class Point:
     x: int
     y: int
+
+
+@dataclass(frozen=True)
+class PowerUp:
+    """A power-up item on the game board.
+
+    Args:
+        position: Grid cell where the power-up is located.
+        kind: The type of power-up effect.
+    """
+
+    position: Point
+    kind: PowerUpType
 
 
 class SnakeCashRush:
@@ -102,6 +128,15 @@ class SnakeCashRush:
         self.last_frame_time = 0.0
         self.running = False
         self.game_over = False
+
+        # Power-up state
+        self.powerup: PowerUp | None = None
+        self.powerup_age_ms: float = 0.0
+        self.active_effect: PowerUpType | None = None
+        self.effect_remaining_ms: float = 0.0
+        self.spawn_timer_ms: float = 0.0
+        self.next_spawn_delay_ms: float = uniform(POWERUP_SPAWN_MIN_MS, POWERUP_SPAWN_MAX_MS)
+
         self.score_value.textContent = str(self.score)
         self.status_text.textContent = "Waiting for your first run."
 
@@ -249,6 +284,26 @@ class SnakeCashRush:
         self.last_frame_time = float(timestamp)
         self.accumulator += frame_delta
 
+        # Power-up spawn timer
+        self.spawn_timer_ms += frame_delta
+        if self.powerup is None and self.spawn_timer_ms >= self.next_spawn_delay_ms:
+            self.spawn_powerup()
+            self.spawn_timer_ms = 0.0
+            self.next_spawn_delay_ms = uniform(POWERUP_SPAWN_MIN_MS, POWERUP_SPAWN_MAX_MS)
+
+        # Power-up despawn
+        if self.powerup is not None:
+            self.powerup_age_ms += frame_delta
+            if self.powerup_age_ms >= POWERUP_DESPAWN_MS:
+                self.powerup = None
+                self.powerup_age_ms = 0.0
+
+        # Effect countdown
+        if self.active_effect is not None:
+            self.effect_remaining_ms -= frame_delta
+            if self.effect_remaining_ms <= 0.0:
+                self.expire_effect()
+
         while self.accumulator >= self.tick_ms and self.running:
           self.accumulator -= self.tick_ms
           self.advance()
@@ -271,14 +326,26 @@ class SnakeCashRush:
         will_collect = next_head == self.cash
         collision_body = self.snake if will_collect else self.snake[1:]
 
-        if self.hit_wall(next_head) or next_head in collision_body:
+        # Wall collision is always fatal
+        if self.hit_wall(next_head):
             self.end_game()
             return
 
+        # Body collision — skip if invincible
+        if next_head in collision_body:
+            if self.active_effect != PowerUpType.INVINCIBILITY:
+                self.end_game()
+                return
+
         self.snake.append(next_head)
 
+        # Check power-up collection
+        if self.powerup is not None and next_head == self.powerup.position:
+            self.collect_powerup()
+
         if will_collect:
-            self.score += SCORE_PER_BILL
+            multiplier = 2 if self.active_effect == PowerUpType.DOUBLE_POINTS else 1
+            self.score += SCORE_PER_BILL * multiplier
             self.tick_ms = max(MIN_TICK_MS, BASE_TICK_MS - (self.score // SCORE_PER_BILL) * SPEED_STEP_MS)
             self.cash = self.spawn_cash(self.snake)
             self.flash_score()
@@ -311,6 +378,8 @@ class SnakeCashRush:
             A Point representing the chosen grid cell for the cash bill.
         """
         occupied = set(snake)
+        if self.powerup is not None:
+            occupied.add(self.powerup.position)
         available = [
             Point(x, y)
             for y in range(BOARD_CELLS)
@@ -318,6 +387,37 @@ class SnakeCashRush:
             if Point(x, y) not in occupied
         ]
         return choice(available) if available else Point(0, 0)
+
+    def spawn_powerup(self) -> None:
+        """Spawn a random power-up on an unoccupied cell."""
+        occupied = set(self.snake)
+        occupied.add(self.cash)
+        kind = choice(list(PowerUpType))
+        available = [
+            Point(x, y)
+            for y in range(BOARD_CELLS)
+            for x in range(BOARD_CELLS)
+            if Point(x, y) not in occupied
+        ]
+        if available:
+            self.powerup = PowerUp(position=choice(available), kind=kind)
+            self.powerup_age_ms = 0.0
+
+    def collect_powerup(self) -> None:
+        """Activate the collected power-up's effect and clear it from the board."""
+        if self.powerup is None:
+            return
+        self.active_effect = self.powerup.kind
+        self.effect_remaining_ms = POWERUP_DURATION_MS
+        self.powerup = None
+        self.powerup_age_ms = 0.0
+        self.spawn_timer_ms = 0.0
+        self.next_spawn_delay_ms = uniform(POWERUP_SPAWN_MIN_MS, POWERUP_SPAWN_MAX_MS)
+
+    def expire_effect(self) -> None:
+        """Clear the active power-up effect."""
+        self.active_effect = None
+        self.effect_remaining_ms = 0.0
 
     def sync_best_score(self) -> None:
         """Persist the best score to localStorage if the current score exceeds it."""
@@ -364,12 +464,14 @@ class SnakeCashRush:
         self.draw()
 
     def draw(self) -> None:
-        """Clear the canvas and redraw the board, cash pickup, and snake."""
+        """Clear the canvas and redraw the board, cash pickup, power-up, snake, and HUD."""
         ctx = self.ctx
         ctx.clearRect(0, 0, BOARD_PIXELS, BOARD_PIXELS)
         self.draw_board(ctx)
         self.draw_cash(ctx)
+        self.draw_powerup(ctx)
         self.draw_snake(ctx)
+        self.draw_effect_bar(ctx)
 
     def draw_board(self, ctx) -> None:
         """Render the dark background and subtle grid lines.
@@ -421,6 +523,96 @@ class SnakeCashRush:
         ctx.fillText("$", x + width / 2, y + height / 2 + 0.5)
         ctx.restore()
 
+    def draw_powerup(self, ctx) -> None:
+        """Render the power-up item on the board if one exists.
+
+        Args:
+            ctx: The 2D canvas rendering context.
+        """
+        if self.powerup is None:
+            return
+        cell = BOARD_PIXELS / BOARD_CELLS
+        x = self.powerup.position.x * cell + 4
+        y = self.powerup.position.y * cell + 4
+        size = cell - 8
+
+        if self.powerup.kind == PowerUpType.DOUBLE_POINTS:
+            color = "#ffd700"
+            shadow = "rgba(255, 215, 0, 0.5)"
+            icon = "2x"
+        else:
+            color = "#00e5ff"
+            shadow = "rgba(0, 229, 255, 0.5)"
+            icon = "\u26a1"
+
+        ctx.save()
+        ctx.shadowColor = shadow
+        ctx.shadowBlur = 18
+        ctx.fillStyle = color
+        round_rect(ctx, x, y, size, size, 10)
+        ctx.fill()
+        ctx.fillStyle = "#000000"
+        ctx.font = "700 11px Space Grotesk"
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.fillText(icon, x + size / 2, y + size / 2 + 0.5)
+        ctx.restore()
+
+    def draw_effect_bar(self, ctx) -> None:
+        """Render a horizontal timer bar showing remaining power-up duration.
+
+        Args:
+            ctx: The 2D canvas rendering context.
+        """
+        if self.active_effect is None:
+            return
+        bar_width = BOARD_PIXELS - 20
+        bar_height = 6
+        bar_x = 10
+        bar_y = BOARD_PIXELS - 14
+        fraction = max(0.0, self.effect_remaining_ms / POWERUP_DURATION_MS)
+
+        if self.active_effect == PowerUpType.DOUBLE_POINTS:
+            color = "#ffd700"
+        else:
+            color = "#00e5ff"
+
+        ctx.save()
+        ctx.fillStyle = "rgba(255, 255, 255, 0.1)"
+        round_rect(ctx, bar_x, bar_y, bar_width, bar_height, 3)
+        ctx.fill()
+        ctx.fillStyle = color
+        round_rect(ctx, bar_x, bar_y, bar_width * fraction, bar_height, 3)
+        ctx.fill()
+        ctx.restore()
+
+    def get_snake_color(self, is_head: bool) -> str:
+        """Return the snake segment color based on active power-up effect.
+
+        Args:
+            is_head: Whether the segment is the head.
+
+        Returns:
+            A CSS color string.
+        """
+        if self.active_effect == PowerUpType.DOUBLE_POINTS:
+            return "#ffe566" if not is_head else "#fff2a8"
+        if self.active_effect == PowerUpType.INVINCIBILITY:
+            return "#00c8e0" if not is_head else "#80f0ff"
+        return "#1fce74" if not is_head else "#a9ffcb"
+
+    def get_snake_glow(self) -> str:
+        """Return the snake glow color based on active power-up effect.
+
+        Returns:
+            A CSS rgba color string.
+        """
+        if self.active_effect == PowerUpType.DOUBLE_POINTS:
+            return "rgba(255, 215, 0, 0.4)"
+        if self.active_effect == PowerUpType.INVINCIBILITY:
+            return "rgba(0, 229, 255, 0.4)"
+        return "rgba(103, 247, 160, 0.35)"
+
     def draw_snake(self, ctx) -> None:
         """Render all snake segments with glow effects and eyes on the head.
 
@@ -428,6 +620,7 @@ class SnakeCashRush:
             ctx: The 2D canvas rendering context.
         """
         cell = BOARD_PIXELS / BOARD_CELLS
+        glow_color = self.get_snake_glow()
         for index, segment in enumerate(self.snake):
             inset = 3
             x = segment.x * cell + inset
@@ -436,8 +629,8 @@ class SnakeCashRush:
             is_head = index == len(self.snake) - 1
 
             ctx.save()
-            ctx.fillStyle = "#1fce74" if not is_head else "#a9ffcb"
-            ctx.shadowColor = "rgba(103, 247, 160, 0.35)"
+            ctx.fillStyle = self.get_snake_color(is_head)
+            ctx.shadowColor = glow_color
             ctx.shadowBlur = 14 if is_head else 8
             round_rect(ctx, x, y, size, size, 9)
             ctx.fill()
@@ -467,6 +660,13 @@ class SnakeCashRush:
             "direction": {"x": self.direction.x, "y": self.direction.y},
             "cash": {"x": self.cash.x, "y": self.cash.y},
             "snake": [{"x": segment.x, "y": segment.y} for segment in self.snake],
+            "powerup": (
+                {"x": self.powerup.position.x, "y": self.powerup.position.y, "kind": self.powerup.kind.value}
+                if self.powerup is not None
+                else None
+            ),
+            "activeEffect": self.active_effect.value if self.active_effect is not None else None,
+            "effectRemainingMs": self.effect_remaining_ms,
         }
         return json.dumps(payload)
 
