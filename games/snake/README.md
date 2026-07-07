@@ -1,60 +1,76 @@
 # Snake Cash Rush
 
-Snake Cash Rush is a browser-based Snake game with Python game logic, cash-bill pickups, a sleek modern UI, live score tracking, and a persisted best score.
+Snake Cash Rush is a browser arcade game where a snake collects cash bills, speeds up over time, and tracks your best run.
 
-## Project Layout
+## Run The Game
 
-- `src/index.html`: app shell and HUD
-- `src/styles.css`: visual design and responsive layout
-- `src/main.py`: Python game logic running in the browser
-- `src/app.js`: small browser bridge for animation timing and best-score storage
+### Prerequisites
 
-## Prerequisites
+- Python 3.10+
+- A modern browser (Edge, Chrome, Firefox)
+- Internet access for first load (PyScript and Google Fonts are loaded from CDNs)
 
-- Python 3.10 or later installed locally
-- A modern browser such as Microsoft Edge or Chrome
-- Internet access the first time the app loads, because PyScript and Google Fonts are fetched from their CDNs
+### Start locally
 
-## Getting Started
+1. Open a terminal and go to this folder:
 
-1. Open a terminal in `games/snake`.
-2. Start a simple static server:
+   ```powershell
+   cd games/snake
+   ```
+
+2. Start a local static server:
 
    ```powershell
    python -m http.server 8000
    ```
 
-3. In your browser, open `http://localhost:8000/src/`.
-4. Wait a few seconds for the PyScript runtime to initialize.
-5. Click `Start Run` or press an arrow key to begin.
+3. Open the game in your browser:
+
+   ```text
+   http://localhost:8000/src/
+   ```
+
+4. Wait a moment for PyScript to initialize, then click **Start Run**.
 
 ## How To Play
 
-- Use `Arrow Keys` or `W`, `A`, `S`, `D` to steer the snake.
-- Eat the money bills to grow and increase your score.
-- Avoid crashing into walls or your own snake body.
-- Press `R` at any time to restart the run.
-- Your best score is stored in the browser and shown in the HUD.
+- Move with **Arrow Keys** or **W / A / S / D**.
+- Collect cash bills to increase your score.
+- Each pickup makes the game a little faster.
+- Avoid walls and your own body.
+- Press **R** to restart at any time.
+
+## Scoring
+
+- Each cash bill gives **+10 points**.
+- Your best score is saved in browser local storage and shown in the HUD.
+
+## Project Structure
+
+```text
+games/
+  snake/
+    README.md          # Project documentation
+    src/
+      index.html       # Game page, HUD, and PyScript wiring
+      styles.css       # Visual styling and responsive layout
+      main.py          # Core Snake game logic (PyScript/Pyodide)
+      app.js           # Browser bridge (RAF + best score persistence)
+```
 
 ## Troubleshooting
 
-### The page opens but the game does not start
+### Game does not start
 
-- Make sure you opened the app through `http://localhost:8000/src/` and not by double-clicking the HTML file.
-- Open the browser developer console and check for failed network requests to PyScript assets.
+- Make sure you opened `http://localhost:8000/src/` and not the HTML file directly.
+- Check the browser console for blocked or failed PyScript CDN requests.
 
-### The board shows but styling looks broken
+### Styles or fonts look incorrect
 
-- Confirm you have internet access for the external font and PyScript stylesheet downloads.
-- Refresh the page once after the first load.
+- Confirm internet access for external stylesheet/font resources.
+- Refresh once after first load.
 
-### The best score does not persist
+### Best score is not saved
 
-- Confirm local storage is enabled in the browser.
-- If you use private browsing, stored values may be cleared when the session ends.
-
-## Development Notes
-
-- The game is intentionally frontend-only.
-- Python handles the core gameplay logic.
-- JavaScript is limited to browser-specific helpers for animation timing and local storage.
+- Ensure browser local storage is enabled.
+- In private/incognito mode, saved data may be cleared when the session closes.
