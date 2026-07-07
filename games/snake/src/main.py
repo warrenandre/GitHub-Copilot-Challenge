@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from random import choice
+from random import choice, randint
 from typing import Iterable
 
 from js import document, window  # type: ignore[import-not-found]
@@ -17,11 +17,35 @@ MIN_TICK_MS = 82
 SPEED_STEP_MS = 5
 SCORE_PER_BILL = 10
 
+# Power-up system defaults (Task 1: finalized gameplay rules and constants).
+POWER_UP_TYPES = ("speed_boost", "invincibility", "double_points")
+POWER_UP_DURATION_MS = {
+    "speed_boost": 6000,
+    "invincibility": 5000,
+    "double_points": 8000,
+}
+POWER_UP_SPAWN_INTERVAL_MIN_MS = 5000
+POWER_UP_SPAWN_INTERVAL_MAX_MS = 9000
+POWER_UP_MAX_ON_BOARD = 1
+POWER_UP_RECOLLECT_POLICY = "refresh_duration"
+POWER_UP_INVINCIBILITY_POLICY = "ignore_lethal_collision"
+POWER_UP_DOUBLE_POINTS_SCOPE = "cash_pickups_only"
+SPEED_BOOST_TICK_MULTIPLIER = 0.7
+SPEED_BOOST_MIN_TICK_MS = 60
+
 
 @dataclass(frozen=True)
 class Point:
     x: int
     y: int
+
+
+@dataclass(frozen=True)
+class PowerUp:
+    power_up_type: str
+    position: Point
+    spawned_at_ms: float
+    ttl_ms: int
 
 
 class SnakeCashRush:
@@ -38,6 +62,7 @@ class SnakeCashRush:
         self.ctx = self.canvas.getContext("2d")
         self.score_value = document.getElementById("scoreValue")
         self.best_score_value = document.getElementById("bestScoreValue")
+        self.power_up_value = document.getElementById("powerUpValue")
         self.status_text = document.getElementById("statusText")
         self.start_button = document.getElementById("startButton")
         self.overlay = document.getElementById("gameOverlay")
@@ -52,6 +77,7 @@ class SnakeCashRush:
         self.best_score = int(window.snakeCashRushBridge.readBestScore())
         self.score_value.textContent = "0"
         self.best_score_value.textContent = str(self.best_score)
+        self.power_up_value.textContent = "None"
 
         self.last_frame_time = 0.0
         self.accumulator = 0.0
@@ -101,12 +127,181 @@ class SnakeCashRush:
         self.cash = self.spawn_cash(self.snake)
         self.score = 0
         self.tick_ms = BASE_TICK_MS
+        self.base_tick_ms = BASE_TICK_MS
+        self.initialize_power_up_state()
         self.accumulator = 0.0
         self.last_frame_time = 0.0
         self.running = False
         self.game_over = False
         self.score_value.textContent = str(self.score)
         self.status_text.textContent = "Waiting for your first run."
+
+    def initialize_power_up_state(self) -> None:
+        """Initialize power-up state for a fresh game lifecycle.
+
+        Parameters:
+            None.
+
+        Returns:
+            None.
+        """
+        self.current_power_up: PowerUp | None = None
+        self.active_effects: dict[str, float] = {}
+        self.next_power_up_spawn_at_ms: float = -1.0
+
+    def schedule_next_power_up_spawn(self, now_ms: float) -> None:
+        """Schedule the next eligible time for power-up spawning.
+
+        Parameters:
+            now_ms: Current game time in milliseconds.
+
+        Returns:
+            None.
+        """
+        delay = randint(POWER_UP_SPAWN_INTERVAL_MIN_MS, POWER_UP_SPAWN_INTERVAL_MAX_MS)
+        self.next_power_up_spawn_at_ms = now_ms + float(delay)
+
+    def spawn_power_up(self, excluded_cells: Iterable[Point], now_ms: float) -> PowerUp | None:
+        """Create a power-up on a random free board cell.
+
+        Parameters:
+            excluded_cells: Cells that cannot be used for spawning.
+            now_ms: Current game time in milliseconds.
+
+        Returns:
+            PowerUp | None: Spawned power-up data or None if no free cells are available.
+        """
+        occupied = set(excluded_cells)
+        available = [
+            Point(x, y)
+            for y in range(BOARD_CELLS)
+            for x in range(BOARD_CELLS)
+            if Point(x, y) not in occupied
+        ]
+        if not available:
+            return None
+
+        power_up_type = choice(POWER_UP_TYPES)
+        return PowerUp(
+            power_up_type=power_up_type,
+            position=choice(available),
+            spawned_at_ms=now_ms,
+            ttl_ms=POWER_UP_DURATION_MS[power_up_type],
+        )
+
+    def maybe_spawn_power_up(self, now_ms: float) -> None:
+        """Spawn a power-up when spawn timing and board constraints allow.
+
+        Parameters:
+            now_ms: Current game time in milliseconds.
+
+        Returns:
+            None.
+        """
+        if POWER_UP_MAX_ON_BOARD < 1:
+            return
+        if self.current_power_up is not None:
+            return
+
+        if self.next_power_up_spawn_at_ms < 0:
+            self.schedule_next_power_up_spawn(now_ms)
+            return
+
+        if now_ms < self.next_power_up_spawn_at_ms:
+            return
+
+        excluded_cells = set(self.snake)
+        excluded_cells.add(self.cash)
+        self.current_power_up = self.spawn_power_up(excluded_cells, now_ms)
+        self.schedule_next_power_up_spawn(now_ms)
+
+    def activate_effect(self, effect_type: str, now_ms: float) -> None:
+        """Activate or refresh a timed effect.
+
+        Parameters:
+            effect_type: Effect identifier.
+            now_ms: Current game time in milliseconds.
+
+        Returns:
+            None.
+        """
+        duration_ms = float(POWER_UP_DURATION_MS[effect_type])
+        if POWER_UP_RECOLLECT_POLICY == "refresh_duration" or effect_type not in self.active_effects:
+            self.active_effects[effect_type] = now_ms + duration_ms
+
+    def collect_power_up_if_present(self, head: Point, now_ms: float) -> bool:
+        """Collect a board power-up when the snake head reaches its position.
+
+        Parameters:
+            head: Snake head position after movement.
+            now_ms: Current game time in milliseconds.
+
+        Returns:
+            bool: True when a power-up was collected, otherwise False.
+        """
+        if self.current_power_up is None:
+            return False
+        if head != self.current_power_up.position:
+            return False
+
+        self.activate_effect(self.current_power_up.power_up_type, now_ms)
+        self.current_power_up = None
+        self.schedule_next_power_up_spawn(now_ms)
+        return True
+
+    def prune_expired_effects(self, now_ms: float) -> None:
+        """Remove effects that have passed their expiration time.
+
+        Parameters:
+            now_ms: Current game time in milliseconds.
+
+        Returns:
+            None.
+        """
+        expired = [effect for effect, ends_at in self.active_effects.items() if now_ms >= ends_at]
+        for effect in expired:
+            del self.active_effects[effect]
+
+    def is_effect_active(self, effect_type: str, now_ms: float) -> bool:
+        """Check whether an effect is currently active.
+
+        Parameters:
+            effect_type: Effect identifier.
+            now_ms: Current game time in milliseconds.
+
+        Returns:
+            bool: True when the effect is active, otherwise False.
+        """
+        ends_at = self.active_effects.get(effect_type)
+        return ends_at is not None and now_ms < ends_at
+
+    def current_score_multiplier(self, now_ms: float) -> int:
+        """Return the score multiplier from active effects.
+
+        Parameters:
+            now_ms: Current game time in milliseconds.
+
+        Returns:
+            int: 2 when double-points is active; otherwise 1.
+        """
+        if POWER_UP_DOUBLE_POINTS_SCOPE == "cash_pickups_only" and self.is_effect_active("double_points", now_ms):
+            return 2
+        return 1
+
+    def compute_effective_tick_ms(self, now_ms: float) -> int:
+        """Compute current tick speed after applying active effects.
+
+        Parameters:
+            now_ms: Current game time in milliseconds.
+
+        Returns:
+            int: Effective tick interval in milliseconds.
+        """
+        tick_ms = self.base_tick_ms
+        if self.is_effect_active("speed_boost", now_ms):
+            boosted = int(self.base_tick_ms * SPEED_BOOST_TICK_MULTIPLIER)
+            tick_ms = max(SPEED_BOOST_MIN_TICK_MS, boosted)
+        return tick_ms
 
     def start_game(self) -> None:
         """Start a run if idle, or reset first when currently in game-over state.
@@ -285,17 +480,22 @@ class SnakeCashRush:
         frame_delta = float(timestamp) - self.last_frame_time
         self.last_frame_time = float(timestamp)
         self.accumulator += frame_delta
+        self.prune_expired_effects(self.last_frame_time)
+        self.maybe_spawn_power_up(self.last_frame_time)
 
-        while self.accumulator >= self.tick_ms and self.running:
-          self.accumulator -= self.tick_ms
-          self.advance()
+        while self.running:
+            self.tick_ms = self.compute_effective_tick_ms(self.last_frame_time)
+            if self.accumulator < self.tick_ms:
+                break
+            self.accumulator -= self.tick_ms
+            self.advance(self.last_frame_time)
 
         self.draw()
 
         if self.running:
             self.animation_handle = window.snakeCashRushBridge.raf(self._frame_proxy)
 
-    def advance(self) -> None:
+    def advance(self, now_ms: float | None = None) -> None:
         """Advance the game by one logical tick, including movement and collisions.
 
         Parameters:
@@ -304,6 +504,10 @@ class SnakeCashRush:
         Returns:
             None.
         """
+        if now_ms is None:
+            now_ms = self.last_frame_time
+
+        self.prune_expired_effects(now_ms)
         self.direction = self.pending_direction
         head = self.snake[-1]
         next_head = Point(head.x + self.direction.x, head.y + self.direction.y)
@@ -315,10 +519,12 @@ class SnakeCashRush:
             return
 
         self.snake.append(next_head)
+        self.collect_power_up_if_present(next_head, now_ms)
 
         if will_collect:
-            self.score += SCORE_PER_BILL
-            self.tick_ms = max(MIN_TICK_MS, BASE_TICK_MS - (self.score // SCORE_PER_BILL) * SPEED_STEP_MS)
+            self.score += SCORE_PER_BILL * self.current_score_multiplier(now_ms)
+            self.base_tick_ms = max(MIN_TICK_MS, BASE_TICK_MS - (self.score // SCORE_PER_BILL) * SPEED_STEP_MS)
+            self.tick_ms = self.compute_effective_tick_ms(now_ms)
             self.cash = self.spawn_cash(self.snake)
             self.flash_score()
             self.show_cash_burst()
@@ -443,7 +649,71 @@ class SnakeCashRush:
         ctx.clearRect(0, 0, BOARD_PIXELS, BOARD_PIXELS)
         self.draw_board(ctx)
         self.draw_cash(ctx)
+        self.draw_power_up(ctx)
         self.draw_snake(ctx)
+        self.render_power_up_hud(self.last_frame_time)
+
+    def render_power_up_hud(self, now_ms: float) -> None:
+        """Render active power-up statuses and remaining durations in the HUD.
+
+        Parameters:
+            now_ms: Current game time in milliseconds.
+
+        Returns:
+            None.
+        """
+        if not self.active_effects and self.current_power_up is None:
+            self.power_up_value.textContent = "None"
+            return
+
+        label_map = {
+            "speed_boost": "Speed",
+            "invincibility": "Shield",
+            "double_points": "2x",
+        }
+
+        parts: list[str] = []
+        for effect, ends_at in sorted(self.active_effects.items()):
+            seconds_left = max(0, int((ends_at - now_ms + 999) // 1000))
+            parts.append(f"{label_map.get(effect, effect)} {seconds_left}s")
+
+        if self.current_power_up is not None:
+            board_label = label_map.get(self.current_power_up.power_up_type, self.current_power_up.power_up_type)
+            parts.append(f"Board: {board_label}")
+
+        self.power_up_value.textContent = " | ".join(parts)
+
+    def draw_power_up(self, ctx) -> None:
+        """Draw active board power-up if one is currently spawned.
+
+        Parameters:
+            ctx: Canvas 2D rendering context used for drawing operations.
+
+        Returns:
+            None.
+        """
+        if self.current_power_up is None:
+            return
+
+        cell = BOARD_PIXELS / BOARD_CELLS
+        x = self.current_power_up.position.x * cell + cell / 2
+        y = self.current_power_up.position.y * cell + cell / 2
+        radius = cell * 0.24
+        colors = {
+            "speed_boost": "#79d6ff",
+            "invincibility": "#ff91b8",
+            "double_points": "#ffe08a",
+        }
+        fill_color = colors.get(self.current_power_up.power_up_type, "#ffffff")
+
+        ctx.save()
+        ctx.shadowColor = fill_color
+        ctx.shadowBlur = 14
+        ctx.fillStyle = fill_color
+        ctx.beginPath()
+        ctx.arc(x, y, radius, 0, 6.283)
+        ctx.fill()
+        ctx.restore()
 
     def draw_board(self, ctx) -> None:
         """Draw the board background and grid lines onto the canvas context.
@@ -549,6 +819,17 @@ class SnakeCashRush:
             "score": self.score,
             "bestScore": self.best_score,
             "tickMs": self.tick_ms,
+            "activeEffects": self.active_effects,
+            "powerUp": (
+                {
+                    "type": self.current_power_up.power_up_type,
+                    "x": self.current_power_up.position.x,
+                    "y": self.current_power_up.position.y,
+                    "ttlMs": self.current_power_up.ttl_ms,
+                }
+                if self.current_power_up is not None
+                else None
+            ),
             "direction": {"x": self.direction.x, "y": self.direction.y},
             "cash": {"x": self.cash.x, "y": self.cash.y},
             "snake": [{"x": segment.x, "y": segment.y} for segment in self.snake],
@@ -592,7 +873,7 @@ class SnakeCashRush:
         if self.game_over:
             return
         self.running = True
-        self.advance()
+        self.advance(self.last_frame_time)
         self.draw()
 
     def destroy(self) -> None:

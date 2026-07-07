@@ -141,6 +141,16 @@ h1 {
   color: var(--gold);
 }
 
+.powerup-tile {
+  min-width: 260px;
+}
+
+.powerup-tile strong {
+  font-size: 1rem;
+  font-family: "Space Grotesk", sans-serif;
+  line-height: 1.3;
+}
+
 .score-tile.pulse {
   animation: scorePulse 320ms ease-out;
 }
