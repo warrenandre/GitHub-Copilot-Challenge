@@ -121,6 +121,15 @@ class SnakeCashRush:
         self.snake = [Point(center, center + 1), Point(center, center), Point(center, center - 1)]
         self.direction = Point(0, -1)
         self.pending_direction = Point(0, -1)
+
+        # Power-up state (must be set before spawn_cash which checks self.powerup)
+        self.powerup: PowerUp | None = None
+        self.powerup_age_ms: float = 0.0
+        self.active_effect: PowerUpType | None = None
+        self.effect_remaining_ms: float = 0.0
+        self.spawn_timer_ms: float = 0.0
+        self.next_spawn_delay_ms: float = uniform(POWERUP_SPAWN_MIN_MS, POWERUP_SPAWN_MAX_MS)
+
         self.cash = self.spawn_cash(self.snake)
         self.score = 0
         self.tick_ms = BASE_TICK_MS
@@ -128,14 +137,6 @@ class SnakeCashRush:
         self.last_frame_time = 0.0
         self.running = False
         self.game_over = False
-
-        # Power-up state
-        self.powerup: PowerUp | None = None
-        self.powerup_age_ms: float = 0.0
-        self.active_effect: PowerUpType | None = None
-        self.effect_remaining_ms: float = 0.0
-        self.spawn_timer_ms: float = 0.0
-        self.next_spawn_delay_ms: float = uniform(POWERUP_SPAWN_MIN_MS, POWERUP_SPAWN_MAX_MS)
 
         self.score_value.textContent = str(self.score)
         self.status_text.textContent = "Waiting for your first run."
