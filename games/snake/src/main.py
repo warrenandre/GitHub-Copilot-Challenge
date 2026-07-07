@@ -25,7 +25,15 @@ class Point:
 
 
 class SnakeCashRush:
+    """Main game controller for Snake Cash Rush.
+
+    Manages game state, rendering, input handling, and the animation loop
+    for a browser-based snake game powered by PyScript.
+    """
+
     def __init__(self) -> None:
+        """Initialize the game by binding DOM elements, setting up event listeners,
+        and preparing the initial game state and overlay."""
         self.canvas = document.getElementById("gameCanvas")
         self.ctx = self.canvas.getContext("2d")
         self.score_value = document.getElementById("scoreValue")
@@ -78,6 +86,11 @@ class SnakeCashRush:
         self.draw()
 
     def reset_state(self) -> None:
+        """Reset all game state to initial values.
+
+        Places the snake in the center of the board facing up, spawns a new
+        cash pickup, and resets the score and tick speed.
+        """
         center = BOARD_CELLS // 2
         self.snake = [Point(center, center + 1), Point(center, center), Point(center, center - 1)]
         self.direction = Point(0, -1)
@@ -93,6 +106,11 @@ class SnakeCashRush:
         self.status_text.textContent = "Waiting for your first run."
 
     def start_game(self) -> None:
+        """Start the game loop.
+
+        If the game is already running, does nothing. If the previous run ended
+        in game-over, resets state before starting.
+        """
         if self.running:
             return
         if self.game_over:
@@ -108,21 +126,28 @@ class SnakeCashRush:
         self.ensure_animation()
 
     def handle_primary_action(self) -> None:
+        """Handle the primary UI action (Start/Restart button click).
+
+        Restarts if a game is active or over; otherwise starts a new game.
+        """
         if self.running or self.game_over:
             self.restart_game()
             return
         self.start_game()
 
     def restart_game(self) -> None:
+        """Cancel the current animation loop, reset state, and start a fresh game."""
         self.cancel_animation()
         self.reset_state()
         self.start_game()
 
     def ensure_animation(self) -> None:
+        """Request the next animation frame if one is not already scheduled."""
         if self.animation_handle is None:
             self.animation_handle = window.snakeCashRushBridge.raf(self._frame_proxy)
 
     def cancel_animation(self) -> None:
+        """Cancel any pending animation frame request."""
         if self.animation_handle is not None:
             window.snakeCashRushBridge.cancelRaf(self.animation_handle)
             self.animation_handle = None
@@ -135,6 +160,15 @@ class SnakeCashRush:
         button_text: str | None = None,
         visible: bool | None = None,
     ) -> None:
+        """Update the game overlay card content and visibility.
+
+        Args:
+            kicker: Small text above the title (e.g. "Ready to bank?").
+            title: Main heading text.
+            message: Body paragraph text.
+            button_text: Label for the overlay action button.
+            visible: If True show the overlay, if False hide it, if None leave unchanged.
+        """
         if kicker is not None:
             self.overlay_kicker.textContent = kicker
         if title is not None:
@@ -149,6 +183,11 @@ class SnakeCashRush:
             self.overlay.classList.remove("visible")
 
     def handle_keydown(self, event) -> None:
+        """Process keyboard input for direction changes and restart.
+
+        Args:
+            event: A DOM KeyboardEvent.
+        """
         key = str(event.key).lower()
         if key == "r":
             self.restart_game()
@@ -177,9 +216,26 @@ class SnakeCashRush:
         self.pending_direction = next_direction
 
     def is_reverse(self, next_direction: Point, current_direction: Point) -> bool:
+        """Check whether a proposed direction is a 180-degree reversal.
+
+        Args:
+            next_direction: The candidate direction vector.
+            current_direction: The current travel direction vector.
+
+        Returns:
+            True if next_direction is the exact opposite of current_direction.
+        """
         return next_direction.x == -current_direction.x and next_direction.y == -current_direction.y
 
     def game_frame(self, timestamp) -> None:
+        """Main animation loop callback driven by requestAnimationFrame.
+
+        Accumulates elapsed time and advances the game in fixed tick intervals,
+        then redraws the board.
+
+        Args:
+            timestamp: High-resolution timestamp in milliseconds from the browser.
+        """
         self.animation_handle = None
 
         if not self.running:
@@ -203,6 +259,12 @@ class SnakeCashRush:
             self.animation_handle = window.snakeCashRushBridge.raf(self._frame_proxy)
 
     def advance(self) -> None:
+        """Advance the game by one logical tick.
+
+        Moves the snake one cell in the current direction, checks for collisions,
+        handles cash collection (growing the snake and increasing speed), and
+        ends the game on collision.
+        """
         self.direction = self.pending_direction
         head = self.snake[-1]
         next_head = Point(head.x + self.direction.x, head.y + self.direction.y)
@@ -229,9 +291,25 @@ class SnakeCashRush:
         self.score_value.textContent = str(self.score)
 
     def hit_wall(self, point: Point) -> bool:
+        """Check whether a point is outside the game board boundaries.
+
+        Args:
+            point: The grid coordinate to test.
+
+        Returns:
+            True if the point is out of bounds.
+        """
         return point.x < 0 or point.y < 0 or point.x >= BOARD_CELLS or point.y >= BOARD_CELLS
 
     def spawn_cash(self, snake: Iterable[Point]) -> Point:
+        """Choose a random unoccupied cell for the next cash pickup.
+
+        Args:
+            snake: The current snake body segments to exclude.
+
+        Returns:
+            A Point representing the chosen grid cell for the cash bill.
+        """
         occupied = set(snake)
         available = [
             Point(x, y)
@@ -242,6 +320,7 @@ class SnakeCashRush:
         return choice(available) if available else Point(0, 0)
 
     def sync_best_score(self) -> None:
+        """Persist the best score to localStorage if the current score exceeds it."""
         if self.score <= self.best_score:
             return
         self.best_score = self.score
@@ -251,12 +330,14 @@ class SnakeCashRush:
         window.setTimeout(create_proxy(lambda: self.best_score_tile.classList.remove("pulse")), 240)
 
     def flash_score(self) -> None:
+        """Trigger a brief CSS pulse animation on the score tile."""
         self.score_tile.classList.remove("pulse")
         self.best_score_tile.classList.remove("pulse")
         self.score_tile.classList.add("pulse")
         window.setTimeout(create_proxy(lambda: self.score_tile.classList.remove("pulse")), 240)
 
     def show_cash_burst(self) -> None:
+        """Display and auto-dismiss the '+$' burst animation element."""
         self.cash_burst.classList.remove("visible")
 
         def trigger() -> None:
@@ -269,6 +350,7 @@ class SnakeCashRush:
         window.setTimeout(create_proxy(cleanup), 460)
 
     def end_game(self) -> None:
+        """End the current run, show the game-over overlay with final score."""
         self.running = False
         self.game_over = True
         self.status_text.textContent = f"Run over at ${self.score}. Tap restart and chase a higher stack."
@@ -282,6 +364,7 @@ class SnakeCashRush:
         self.draw()
 
     def draw(self) -> None:
+        """Clear the canvas and redraw the board, cash pickup, and snake."""
         ctx = self.ctx
         ctx.clearRect(0, 0, BOARD_PIXELS, BOARD_PIXELS)
         self.draw_board(ctx)
@@ -289,6 +372,11 @@ class SnakeCashRush:
         self.draw_snake(ctx)
 
     def draw_board(self, ctx) -> None:
+        """Render the dark background and subtle grid lines.
+
+        Args:
+            ctx: The 2D canvas rendering context.
+        """
         ctx.fillStyle = "#07141d"
         ctx.fillRect(0, 0, BOARD_PIXELS, BOARD_PIXELS)
 
@@ -307,6 +395,11 @@ class SnakeCashRush:
             ctx.stroke()
 
     def draw_cash(self, ctx) -> None:
+        """Render the cash bill pickup as a glowing green rectangle with a '$' symbol.
+
+        Args:
+            ctx: The 2D canvas rendering context.
+        """
         px = self.cash.x * GRID_SIZE * 1.4
         py = self.cash.y * GRID_SIZE * 1.4
         cell = BOARD_PIXELS / BOARD_CELLS
@@ -329,6 +422,11 @@ class SnakeCashRush:
         ctx.restore()
 
     def draw_snake(self, ctx) -> None:
+        """Render all snake segments with glow effects and eyes on the head.
+
+        Args:
+            ctx: The 2D canvas rendering context.
+        """
         cell = BOARD_PIXELS / BOARD_CELLS
         for index, segment in enumerate(self.snake):
             inset = 3
@@ -354,6 +452,12 @@ class SnakeCashRush:
             ctx.restore()
 
     def snapshot_json(self) -> str:
+        """Serialize the current game state to a JSON string.
+
+        Returns:
+            A JSON string containing running state, score, direction, cash
+            position, and all snake segment coordinates.
+        """
         payload = {
             "running": self.running,
             "gameOver": self.game_over,
@@ -367,6 +471,11 @@ class SnakeCashRush:
         return json.dumps(payload)
 
     def place_cash_ahead(self) -> None:
+        """Debug helper: place the cash pickup directly ahead of the snake head.
+
+        Tries the cell immediately in front first, then adjacent cells.
+        Used for testing collection logic without waiting for random placement.
+        """
         head = self.snake[-1]
         candidates = [
             Point(head.x + self.direction.x, head.y + self.direction.y),
@@ -384,6 +493,10 @@ class SnakeCashRush:
             return
 
     def step_debug(self) -> None:
+        """Debug helper: advance the game by exactly one tick and redraw.
+
+        Does nothing if the game is already over.
+        """
         if self.game_over:
             return
         self.running = True
@@ -391,11 +504,22 @@ class SnakeCashRush:
         self.draw()
 
     def destroy(self) -> None:
+        """Clean up event listeners and cancel any pending animation frame."""
         self.cancel_animation()
         document.removeEventListener("keydown", self._key_proxy)
 
 
 def round_rect(ctx, x: float, y: float, width: float, height: float, radius: float) -> None:
+    """Draw a rounded rectangle path on the canvas context.
+
+    Args:
+        ctx: The 2D canvas rendering context.
+        x: The x-coordinate of the top-left corner.
+        y: The y-coordinate of the top-left corner.
+        width: The rectangle width in pixels.
+        height: The rectangle height in pixels.
+        radius: The corner radius in pixels.
+    """
     ctx.beginPath()
     ctx.moveTo(x + radius, y)
     ctx.lineTo(x + width - radius, y)
