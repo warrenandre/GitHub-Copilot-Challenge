@@ -79,8 +79,12 @@ class SnakeCashRush:
 
     def reset_state(self) -> None:
         center = BOARD_CELLS // 2
+        # Snake starts as 3 segments moving upward so the player has immediate
+        # visual context and a natural first move direction.
         self.snake = [Point(center, center + 1), Point(center, center), Point(center, center - 1)]
         self.direction = Point(0, -1)
+        # pending_direction buffers the next turn so mid-tick key presses are
+        # not lost; it is only applied at the start of advance().
         self.pending_direction = Point(0, -1)
         self.cash = self.spawn_cash(self.snake)
         self.score = 0
@@ -168,15 +172,22 @@ class SnakeCashRush:
         if next_direction is None:
             return
 
+        # Allow a keypress to implicitly start the game so the player doesn't
+        # have to click Start before using the keyboard.
         if not self.running and not self.game_over:
             self.start_game()
 
+        # Reject 180-degree reversals — moving into the snake's own neck would
+        # cause an immediate and unfair self-collision on the very next tick.
         if self.is_reverse(next_direction, self.direction):
             return
 
         self.pending_direction = next_direction
 
     def is_reverse(self, next_direction: Point, current_direction: Point) -> bool:
+        # A direction is a reversal when both axes are exactly negated,
+        # e.g. (1,0) vs (-1,0). Diagonal cases are not possible here because
+        # the snake only moves on one axis at a time.
         return next_direction.x == -current_direction.x and next_direction.y == -current_direction.y
 
     def game_frame(self, timestamp) -> None:
@@ -186,6 +197,8 @@ class SnakeCashRush:
             self.draw()
             return
 
+        # On the very first frame last_frame_time is 0, so we initialise it
+        # here to avoid a massive delta that would skip several ticks at once.
         if self.last_frame_time == 0.0:
             self.last_frame_time = float(timestamp)
 
@@ -193,9 +206,13 @@ class SnakeCashRush:
         self.last_frame_time = float(timestamp)
         self.accumulator += frame_delta
 
+        # Drain the accumulator in fixed-size steps so game speed is consistent
+        # regardless of the display refresh rate (e.g. 60 Hz vs 120 Hz).
+        # The loop guard on `self.running` stops processing if advance() ends
+        # the game mid-drain, preventing extra steps after a collision.
         while self.accumulator >= self.tick_ms and self.running:
-          self.accumulator -= self.tick_ms
-          self.advance()
+            self.accumulator -= self.tick_ms
+            self.advance()
 
         self.draw()
 
@@ -203,10 +220,18 @@ class SnakeCashRush:
             self.animation_handle = window.snakeCashRushBridge.raf(self._frame_proxy)
 
     def advance(self) -> None:
+        # Commit the buffered direction now, not when the key was pressed,
+        # so direction changes always align with tick boundaries.
         self.direction = self.pending_direction
         head = self.snake[-1]
         next_head = Point(head.x + self.direction.x, head.y + self.direction.y)
         will_collect = next_head == self.cash
+
+        # When the snake is about to collect cash the tail will NOT move this
+        # tick (growth), so the current tail cell is still occupied — include
+        # it in the collision check. When not collecting, the tail vacates its
+        # cell before the head advances, so exclude index 0 to avoid a false
+        # self-collision with the departing tail.
         collision_body = self.snake if will_collect else self.snake[1:]
 
         if self.hit_wall(next_head) or next_head in collision_body:
@@ -217,6 +242,8 @@ class SnakeCashRush:
 
         if will_collect:
             self.score += SCORE_PER_BILL
+            # Increase speed progressively per bill collected, but clamp at
+            # MIN_TICK_MS so the game remains physically playable at high scores.
             self.tick_ms = max(MIN_TICK_MS, BASE_TICK_MS - (self.score // SCORE_PER_BILL) * SPEED_STEP_MS)
             self.cash = self.spawn_cash(self.snake)
             self.flash_score()
@@ -224,21 +251,30 @@ class SnakeCashRush:
             self.sync_best_score()
             self.status_text.textContent = f"Banked ${self.score}. Pace is picking up."
         else:
+            # Remove the tail to simulate movement; when collecting we skip
+            # this so the snake grows by one segment.
             self.snake.pop(0)
 
         self.score_value.textContent = str(self.score)
 
     def hit_wall(self, point: Point) -> bool:
+        # The board is a closed grid [0, BOARD_CELLS), so any coordinate
+        # outside that range means the snake has left the playfield.
         return point.x < 0 or point.y < 0 or point.x >= BOARD_CELLS or point.y >= BOARD_CELLS
 
     def spawn_cash(self, snake: Iterable[Point]) -> Point:
         occupied = set(snake)
+        # Build the full list of free cells first so we can do a single O(1)
+        # random pick rather than retrying random positions until one is free,
+        # which could loop indefinitely on a nearly-full board.
         available = [
             Point(x, y)
             for y in range(BOARD_CELLS)
             for x in range(BOARD_CELLS)
             if Point(x, y) not in occupied
         ]
+        # Fallback to (0,0) only when the board is completely full — an
+        # effectively unreachable state in normal play but required for safety.
         return choice(available) if available else Point(0, 0)
 
     def sync_best_score(self) -> None:
@@ -247,16 +283,26 @@ class SnakeCashRush:
         self.best_score = self.score
         self.best_score_value.textContent = str(self.best_score)
         self.best_score_tile.classList.add("pulse")
+        # Persist via the JS bridge so the record survives page reloads
+        # (stored in localStorage on the host page).
         window.snakeCashRushBridge.writeBestScore(self.best_score)
+        # Use setTimeout to remove the CSS class after the animation completes
+        # rather than relying on an animationend event, which can be unreliable
+        # across browsers when elements are rapidly re-triggered.
         window.setTimeout(create_proxy(lambda: self.best_score_tile.classList.remove("pulse")), 240)
 
     def flash_score(self) -> None:
+        # Force-remove then re-add the class so the CSS animation restarts
+        # even if it is already mid-play from the previous collection.
         self.score_tile.classList.remove("pulse")
         self.best_score_tile.classList.remove("pulse")
         self.score_tile.classList.add("pulse")
         window.setTimeout(create_proxy(lambda: self.score_tile.classList.remove("pulse")), 240)
 
     def show_cash_burst(self) -> None:
+        # Remove first to reset any in-progress animation, then re-add after a
+        # minimal delay so the browser registers a genuine class change and
+        # replays the CSS keyframe from the beginning.
         self.cash_burst.classList.remove("visible")
 
         def trigger() -> None:
@@ -368,6 +414,9 @@ class SnakeCashRush:
 
     def place_cash_ahead(self) -> None:
         head = self.snake[-1]
+        # Prioritise the cell directly ahead so the next tick is a guaranteed
+        # collect; fall back to adjacent cells only if the forward cell is
+        # blocked by a wall or the snake's own body.
         candidates = [
             Point(head.x + self.direction.x, head.y + self.direction.y),
             Point(head.x + 1, head.y),
@@ -396,6 +445,9 @@ class SnakeCashRush:
 
 
 def round_rect(ctx, x: float, y: float, width: float, height: float, radius: float) -> None:
+    # Canvas 2D doesn't universally support ctx.roundRect() across all runtime
+    # versions, so we manually draw the shape using quadratic Bézier curves at
+    # each corner to guarantee consistent rendering in Pyodide's browser target.
     ctx.beginPath()
     ctx.moveTo(x + radius, y)
     ctx.lineTo(x + width - radius, y)
