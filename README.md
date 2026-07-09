@@ -61,6 +61,10 @@ python -m http.server 8000
 
 Then open http://localhost:8000/src/ in your browser.
 
+## Snake Game Guide
+
+For full gameplay, architecture, controls, and troubleshooting details, see [games/snake/README.md](games/snake/README.md).
+
 ## Project Structure
 
 ```
