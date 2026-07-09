@@ -1,4 +1,5 @@
 import importlib.util
+import json
 import pathlib
 import sys
 import types
@@ -87,12 +88,14 @@ class FakeBridge:
         self.best_score = 0
         self.last_write = None
         self._raf_id = 0
+        self.canceled_handles = []
 
     def raf(self, callback):
         self._raf_id += 1
         return self._raf_id
 
     def cancelRaf(self, _handle):
+        self.canceled_handles.append(_handle)
         return None
 
     def readBestScore(self):
@@ -148,6 +151,10 @@ class FakeDocument:
 class FakeEvent:
     def __init__(self, key):
         self.key = key
+
+
+class EventWithoutKey:
+    pass
 
 
 def load_main_module():
@@ -331,6 +338,266 @@ class SnakeGameLogicTests(unittest.TestCase):
         self.assertFalse(self.game.game_over)
         self.assertEqual(self.game.score, 0)
         self.assertEqual(self.game.score_value.textContent, "0")
+
+    def test_start_game_sets_ui_and_animation(self):
+        self.game.start_game()
+
+        self.assertTrue(self.game.running)
+        self.assertFalse(self.game.game_over)
+        self.assertEqual(self.game.start_button.textContent, "Restart Run")
+        self.assertEqual(self.game.status_text.textContent, "Live run. Stay sharp and keep stacking.")
+        self.assertNotIn("visible", self.game.overlay.classList._items)
+        self.assertIsNotNone(self.game.animation_handle)
+
+    def test_start_game_noop_when_already_running(self):
+        self.game.running = True
+        self.game.animation_handle = 99
+
+        self.game.start_game()
+
+        self.assertEqual(self.game.animation_handle, 99)
+
+    def test_start_game_resets_state_after_game_over(self):
+        self.game.game_over = True
+        self.game.score = 50
+        self.game.score_value.textContent = "50"
+
+        self.game.start_game()
+
+        self.assertEqual(self.game.score, 0)
+        self.assertEqual(self.game.score_value.textContent, "0")
+        self.assertTrue(self.game.running)
+
+    def test_handle_primary_action_starts_from_idle(self):
+        self.assertFalse(self.game.running)
+
+        self.game.handle_primary_action()
+
+        self.assertTrue(self.game.running)
+
+    def test_handle_primary_action_restarts_when_running(self):
+        self.game.running = True
+        self.game.score = 30
+        self.game.animation_handle = 7
+
+        self.game.handle_primary_action()
+
+        self.assertEqual(self.game.score, 0)
+        self.assertTrue(self.game.running)
+        self.assertIn(7, self.window.snakeCashRushBridge.canceled_handles)
+
+    def test_ensure_animation_only_schedules_once(self):
+        self.game.ensure_animation()
+        first_handle = self.game.animation_handle
+
+        self.game.ensure_animation()
+
+        self.assertEqual(self.game.animation_handle, first_handle)
+
+    def test_cancel_animation_noop_when_none(self):
+        self.game.animation_handle = None
+
+        self.game.cancel_animation()
+
+        self.assertEqual(self.window.snakeCashRushBridge.canceled_handles, [])
+
+    def test_game_frame_draws_without_running(self):
+        calls = []
+        self.game.draw = lambda: calls.append("draw")
+
+        self.game.game_frame(100)
+
+        self.assertEqual(calls, ["draw"])
+        self.assertIsNone(self.game.animation_handle)
+
+    def test_game_frame_advances_and_reschedules(self):
+        self.game.running = True
+        self.game.tick_ms = 50
+        self.game.last_frame_time = 100
+        self.game.accumulator = 0
+        advances = []
+        draws = []
+        self.game.advance = lambda: advances.append("advance")
+        self.game.draw = lambda: draws.append("draw")
+
+        self.game.game_frame(260)
+
+        self.assertEqual(len(advances), 3)
+        self.assertEqual(draws, ["draw"])
+        self.assertIsNotNone(self.game.animation_handle)
+
+    def test_hit_wall_boundary_conditions(self):
+        self.assertTrue(self.game.hit_wall(self.module.Point(-1, 0)))
+        self.assertTrue(self.game.hit_wall(self.module.Point(0, -1)))
+        self.assertTrue(self.game.hit_wall(self.module.Point(self.module.BOARD_CELLS, 0)))
+        self.assertTrue(self.game.hit_wall(self.module.Point(0, self.module.BOARD_CELLS)))
+        self.assertFalse(self.game.hit_wall(self.module.Point(self.module.BOARD_CELLS - 1, self.module.BOARD_CELLS - 1)))
+
+    def test_sync_best_score_updates_and_persists(self):
+        self.game.best_score = 20
+        self.game.score = 30
+
+        self.game.sync_best_score()
+
+        self.assertEqual(self.game.best_score, 30)
+        self.assertEqual(self.game.best_score_value.textContent, "30")
+        self.assertEqual(self.window.snakeCashRushBridge.last_write, 30)
+
+    def test_sync_best_score_noop_when_not_higher(self):
+        self.game.best_score = 50
+        self.game.score = 50
+
+        self.game.sync_best_score()
+
+        self.assertEqual(self.game.best_score, 50)
+        self.assertIsNone(self.window.snakeCashRushBridge.last_write)
+
+    def test_snapshot_json_includes_core_state(self):
+        self.game.running = True
+        self.game.game_over = False
+        self.game.score = 40
+        self.game.best_score = 70
+
+        snapshot = json.loads(self.game.snapshot_json())
+
+        self.assertTrue(snapshot["running"])
+        self.assertFalse(snapshot["gameOver"])
+        self.assertEqual(snapshot["score"], 40)
+        self.assertEqual(snapshot["bestScore"], 70)
+        self.assertIn("snake", snapshot)
+        self.assertIn("cash", snapshot)
+
+    def test_place_cash_ahead_prefers_forward_cell(self):
+        head = self.game.snake[-1]
+        forward = self.module.Point(head.x + self.game.direction.x, head.y + self.game.direction.y)
+        self.game.cash = self.module.Point(0, 0)
+
+        self.game.place_cash_ahead()
+
+        self.assertEqual(self.game.cash, forward)
+
+    def test_place_cash_ahead_skips_blocked_and_uses_next_candidate(self):
+        self.game.snake = [
+            self.module.Point(5, 4),
+            self.module.Point(6, 4),
+            self.module.Point(8, 4),
+            self.module.Point(7, 4),
+        ]
+        self.game.direction = self.module.Point(1, 0)
+        self.game.cash = self.module.Point(0, 0)
+
+        self.game.place_cash_ahead()
+
+        self.assertEqual(self.game.cash, self.module.Point(7, 5))
+
+    def test_end_game_sets_flags_and_overlay(self):
+        self.game.running = True
+        self.game.score = 20
+
+        self.game.end_game()
+
+        self.assertFalse(self.game.running)
+        self.assertTrue(self.game.game_over)
+        self.assertIn("visible", self.game.overlay.classList._items)
+        self.assertEqual(self.game.overlay_title.textContent, "Crash Out")
+
+    def test_destroy_removes_registered_key_listener(self):
+        self.assertIn("keydown", self.document._listeners)
+
+        self.game.destroy()
+
+        self.assertNotIn("keydown", self.document._listeners)
+
+    def test_tick_speed_never_drops_below_minimum(self):
+        self.game.running = True
+        self.game.score = self.module.SCORE_PER_BILL * 100
+        head = self.game.snake[-1]
+        self.game.cash = self.module.Point(head.x, head.y - 1)
+
+        self.game.advance()
+
+        self.assertEqual(self.game.tick_ms, self.module.MIN_TICK_MS)
+
+    def test_handle_keydown_accepts_uppercase_wasd(self):
+        self.game.running = True
+        self.game.direction = self.module.Point(0, -1)
+        self.game.pending_direction = self.module.Point(0, -1)
+
+        self.game.handle_keydown(FakeEvent("D"))
+
+        self.assertEqual(self.game.pending_direction, self.module.Point(1, 0))
+
+    def test_handle_keydown_ignores_non_string_key_values(self):
+        self.game.pending_direction = self.module.Point(0, -1)
+
+        self.game.handle_keydown(FakeEvent(123))
+
+        self.assertEqual(self.game.pending_direction, self.module.Point(0, -1))
+
+    def test_handle_keydown_missing_key_attribute_raises(self):
+        with self.assertRaises(AttributeError):
+            self.game.handle_keydown(EventWithoutKey())
+
+    def test_place_cash_ahead_noop_when_all_candidates_blocked(self):
+        self.game.snake = [
+            self.module.Point(0, 0),
+            self.module.Point(0, 1),
+            self.module.Point(1, 1),
+            self.module.Point(2, 0),
+            self.module.Point(1, 0),
+        ]
+        self.game.direction = self.module.Point(-1, 0)
+        original_cash = self.module.Point(9, 9)
+        self.game.cash = original_cash
+
+        self.game.place_cash_ahead()
+
+        self.assertEqual(self.game.cash, original_cash)
+
+    def test_step_debug_advances_and_sets_running(self):
+        self.game.running = False
+        self.game.game_over = False
+        head = self.game.snake[-1]
+        self.game.cash = self.module.Point(0, 0)
+
+        self.game.step_debug()
+
+        self.assertTrue(self.game.running)
+        self.assertEqual(self.game.snake[-1], self.module.Point(head.x, head.y - 1))
+
+    def test_set_overlay_partial_update_does_not_toggle_visibility(self):
+        self.game.overlay.classList.add("visible")
+
+        self.game.set_overlay(title="Updated")
+
+        self.assertEqual(self.game.overlay_title.textContent, "Updated")
+        self.assertIn("visible", self.game.overlay.classList._items)
+
+    def test_snapshot_json_remains_valid_after_state_mutation(self):
+        self.game.running = True
+        self.game.game_over = True
+        self.game.score = -10
+        self.game.best_score = 999
+        self.game.tick_ms = 999999
+        self.game.direction = self.module.Point(2, -3)
+
+        parsed = json.loads(self.game.snapshot_json())
+
+        self.assertEqual(parsed["score"], -10)
+        self.assertEqual(parsed["bestScore"], 999)
+        self.assertEqual(parsed["tickMs"], 999999)
+        self.assertEqual(parsed["direction"], {"x": 2, "y": -3})
+
+    def test_end_game_message_includes_score_and_best(self):
+        self.game.running = True
+        self.game.score = 120
+        self.game.best_score = 200
+
+        self.game.end_game()
+
+        self.assertIn("$120", self.game.status_text.textContent)
+        self.assertIn("$120", self.game.overlay_message.textContent)
+        self.assertIn("$200", self.game.overlay_message.textContent)
 
 
 if __name__ == "__main__":
