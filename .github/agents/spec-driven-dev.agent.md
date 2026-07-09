@@ -91,13 +91,13 @@ Document assumptions made in the absence of explicit requirements.
 
 **Goal:** Turn the design into an actionable build plan and a concise executive summary.
 
-Produce a document with the following sections:
+Produce **two separate documents** for this phase:
 
-### 3.1 Executive Summary
-Three to five sentences covering: what is being built, why it matters, how it
-fits the existing architecture, and any notable risk or dependency.
+---
 
-### 3.2 Task List
+### Document A — `tasks.md`
+
+#### Task List
 A numbered list of atomic, independently executable tasks.
 For each task provide:
 
@@ -107,13 +107,24 @@ For each task provide:
 
 Effort scale: **XS** < 30 min · **S** < 2 h · **M** < 1 day · **L** > 1 day
 
-### 3.3 Verification Checklist
+#### Verification Checklist
 A checklist the developer runs after implementation to confirm all acceptance
 criteria from Phase 1 are satisfied.
 
 - [ ] AC-1 …
 - [ ] AC-2 …
 
-### 3.4 Open Questions
+#### Open Questions
 Any unresolved decisions that require stakeholder input before or during
 implementation.
+
+---
+
+### Document B — `summary.md`
+
+#### Executive Summary
+Five to seven sentences covering:
+- What is being built and why it matters to the user.
+- How it fits the existing architecture (reference the layer boundaries from `copilot-instructions.md`).
+- Any notable implementation risk or dependency.
+- Total estimated effort and whether the feature can ship independently.
