@@ -141,6 +141,12 @@ h1 {
   color: var(--gold);
 }
 
+.power-tile strong {
+  color: #94c4ff;
+  font-size: 1.08rem;
+  line-height: 1.2;
+}
+
 .score-tile.pulse {
   animation: scorePulse 320ms ease-out;
 }
