@@ -1452,11 +1452,19 @@ jobs:
               await main();
             } catch (loadErr) {
               const continueOnError = process.env.GH_AW_DETECTION_CONTINUE_ON_ERROR !== 'false';
-              const detectionExecutionFailed = process.env.DETECTION_AGENTIC_EXECUTION_OUTCOME === 'failure';
+              const detectionExecutionOutcome = process.env.DETECTION_AGENTIC_EXECUTION_OUTCOME || '';
+              const detectionExecutionFailed = detectionExecutionOutcome === 'failure';
+              const detectionExecutionCancelled = detectionExecutionOutcome === 'cancelled';
+              const detectionExecutionTimedOut = detectionExecutionOutcome === 'timed_out';
               const msg = 'ERR_SYSTEM: \u274C Unexpected error loading threat detection module: ' + (loadErr && loadErr.message ? loadErr.message : String(loadErr));
               core.error(msg);
               core.setOutput('reason', 'parse_error');
-              if (continueOnError && !detectionExecutionFailed) {
+              if (detectionExecutionCancelled || detectionExecutionTimedOut) {
+                core.warning('\u26A0\uFE0F Detection execution was cancelled or timed out; proceeding with warning conclusion.');
+                core.warning('\u26A0\uFE0F ' + msg);
+                core.setOutput('conclusion', 'warning');
+                core.setOutput('success', 'false');
+              } else if (continueOnError && !detectionExecutionFailed) {
                 core.warning('\u26A0\uFE0F ' + msg);
                 core.setOutput('conclusion', 'warning');
                 core.setOutput('success', 'false');
@@ -1507,7 +1515,7 @@ jobs:
       - activation
       - agent
       - detection
-    if: (!cancelled()) && needs.agent.result != 'skipped' && needs.detection.result == 'success'
+    if: always() && needs.agent.result != 'skipped' && needs.detection.result != 'skipped'
     runs-on: ubuntu-slim
     permissions:
       contents: read
