@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from random import choice
+from random import choice, random
 from typing import Iterable
 
 from js import document, window  # type: ignore[import-not-found]
@@ -16,6 +16,27 @@ BASE_TICK_MS = 160
 MIN_TICK_MS = 82
 SPEED_STEP_MS = 5
 SCORE_PER_BILL = 10
+POWER_UP_DURATION_MS = 7000
+POWER_UP_SPAWN_CHANCE = 0.09
+SPEED_BOOST_MULTIPLIER = 0.72
+MIN_SPEED_BOOST_TICK_MS = 58
+
+POWER_UP_SPEED = "speed_boost"
+POWER_UP_INVINCIBLE = "invincibility"
+POWER_UP_DOUBLE_POINTS = "double_points"
+POWER_UP_TYPES = (POWER_UP_SPEED, POWER_UP_INVINCIBLE, POWER_UP_DOUBLE_POINTS)
+
+POWER_UP_LABELS = {
+    POWER_UP_SPEED: "Speed",
+    POWER_UP_INVINCIBLE: "Shield",
+    POWER_UP_DOUBLE_POINTS: "2x Points",
+}
+
+POWER_UP_COLORS = {
+    POWER_UP_SPEED: ("#7dc2ff", "rgba(125, 194, 255, 0.52)", "#103451", "⚡"),
+    POWER_UP_INVINCIBLE: ("#c98aff", "rgba(201, 138, 255, 0.5)", "#33114f", "🛡"),
+    POWER_UP_DOUBLE_POINTS: ("#ffe08a", "rgba(255, 224, 138, 0.48)", "#5b4706", "2x"),
+}
 
 
 @dataclass(frozen=True)
@@ -24,13 +45,28 @@ class Point:
     y: int
 
 
+@dataclass(frozen=True)
+class PowerUp:
+    kind: str
+    position: Point
+
+
 class SnakeCashRush:
     def __init__(self) -> None:
+        """Initialize the game and wire browser event handlers.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
         self.canvas = document.getElementById("gameCanvas")
         self.ctx = self.canvas.getContext("2d")
         self.score_value = document.getElementById("scoreValue")
         self.best_score_value = document.getElementById("bestScoreValue")
         self.status_text = document.getElementById("statusText")
+        self.power_up_status = document.getElementById("powerUpStatus")
         self.start_button = document.getElementById("startButton")
         self.overlay = document.getElementById("gameOverlay")
         self.overlay_kicker = document.getElementById("overlayKicker")
@@ -78,11 +114,21 @@ class SnakeCashRush:
         self.draw()
 
     def reset_state(self) -> None:
+        """Reset all game state for a new run.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
         center = BOARD_CELLS // 2
         self.snake = [Point(center, center + 1), Point(center, center), Point(center, center - 1)]
         self.direction = Point(0, -1)
         self.pending_direction = Point(0, -1)
         self.cash = self.spawn_cash(self.snake)
+        self.power_up: PowerUp | None = None
+        self.effect_timers_ms: dict[str, int] = {kind: 0 for kind in POWER_UP_TYPES}
         self.score = 0
         self.tick_ms = BASE_TICK_MS
         self.accumulator = 0.0
@@ -91,6 +137,8 @@ class SnakeCashRush:
         self.game_over = False
         self.score_value.textContent = str(self.score)
         self.status_text.textContent = "Waiting for your first run."
+        if self.power_up_status is not None:
+            self.power_up_status.textContent = "No active power-ups"
 
     def start_game(self) -> None:
         if self.running:
@@ -180,6 +228,14 @@ class SnakeCashRush:
         return next_direction.x == -current_direction.x and next_direction.y == -current_direction.y
 
     def game_frame(self, timestamp) -> None:
+        """Run one animation frame and process pending game ticks.
+
+        Args:
+            timestamp: Browser RAF timestamp for timing updates.
+
+        Returns:
+            None.
+        """
         self.animation_handle = None
 
         if not self.running:
@@ -192,10 +248,12 @@ class SnakeCashRush:
         frame_delta = float(timestamp) - self.last_frame_time
         self.last_frame_time = float(timestamp)
         self.accumulator += frame_delta
+        self.tick_ms = self.compute_tick_ms()
 
         while self.accumulator >= self.tick_ms and self.running:
-          self.accumulator -= self.tick_ms
-          self.advance()
+            self.accumulator -= self.tick_ms
+            self.advance()
+            self.tick_ms = self.compute_tick_ms()
 
         self.draw()
 
@@ -203,36 +261,64 @@ class SnakeCashRush:
             self.animation_handle = window.snakeCashRushBridge.raf(self._frame_proxy)
 
     def advance(self) -> None:
+        """Advance the game by one simulation tick.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
+        self.update_effect_timers(self.tick_ms)
         self.direction = self.pending_direction
         head = self.snake[-1]
-        next_head = Point(head.x + self.direction.x, head.y + self.direction.y)
+        next_head = self.resolve_next_head(head)
         will_collect = next_head == self.cash
         collision_body = self.snake if will_collect else self.snake[1:]
 
-        if self.hit_wall(next_head) or next_head in collision_body:
+        has_collision = self.hit_wall(next_head) or next_head in collision_body
+        if has_collision and not self.has_effect(POWER_UP_INVINCIBLE):
             self.end_game()
             return
 
         self.snake.append(next_head)
 
         if will_collect:
-            self.score += SCORE_PER_BILL
-            self.tick_ms = max(MIN_TICK_MS, BASE_TICK_MS - (self.score // SCORE_PER_BILL) * SPEED_STEP_MS)
+            cash_points = SCORE_PER_BILL * (2 if self.has_effect(POWER_UP_DOUBLE_POINTS) else 1)
+            self.score += cash_points
             self.cash = self.spawn_cash(self.snake)
+            self.try_spawn_power_up()
             self.flash_score()
             self.show_cash_burst()
             self.sync_best_score()
             self.status_text.textContent = f"Banked ${self.score}. Pace is picking up."
         else:
             self.snake.pop(0)
+            self.try_spawn_power_up()
+
+        if self.power_up is not None and next_head == self.power_up.position:
+            self.activate_power_up(self.power_up.kind)
+            self.power_up = None
 
         self.score_value.textContent = str(self.score)
+        self.tick_ms = self.compute_tick_ms()
+        self.update_power_up_status()
 
     def hit_wall(self, point: Point) -> bool:
         return point.x < 0 or point.y < 0 or point.x >= BOARD_CELLS or point.y >= BOARD_CELLS
 
     def spawn_cash(self, snake: Iterable[Point]) -> Point:
+        """Spawn a cash pickup on a free board cell.
+
+        Args:
+            snake: Current snake body positions to avoid.
+
+        Returns:
+            A valid board position for cash.
+        """
         occupied = set(snake)
+        if self.power_up is not None:
+            occupied.add(self.power_up.position)
         available = [
             Point(x, y)
             for y in range(BOARD_CELLS)
@@ -269,6 +355,14 @@ class SnakeCashRush:
         window.setTimeout(create_proxy(cleanup), 460)
 
     def end_game(self) -> None:
+        """Stop gameplay and present the game-over overlay.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
         self.running = False
         self.game_over = True
         self.status_text.textContent = f"Run over at ${self.score}. Tap restart and chase a higher stack."
@@ -282,10 +376,19 @@ class SnakeCashRush:
         self.draw()
 
     def draw(self) -> None:
+        """Render board, items, and snake.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
         ctx = self.ctx
         ctx.clearRect(0, 0, BOARD_PIXELS, BOARD_PIXELS)
         self.draw_board(ctx)
         self.draw_cash(ctx)
+        self.draw_power_up(ctx)
         self.draw_snake(ctx)
 
     def draw_board(self, ctx) -> None:
@@ -354,6 +457,14 @@ class SnakeCashRush:
             ctx.restore()
 
     def snapshot_json(self) -> str:
+        """Return a JSON snapshot of the current game state.
+
+        Args:
+            None.
+
+        Returns:
+            Serialized JSON snapshot for debug tooling.
+        """
         payload = {
             "running": self.running,
             "gameOver": self.game_over,
@@ -362,11 +473,28 @@ class SnakeCashRush:
             "tickMs": self.tick_ms,
             "direction": {"x": self.direction.x, "y": self.direction.y},
             "cash": {"x": self.cash.x, "y": self.cash.y},
+            "powerUp": (
+                None
+                if self.power_up is None
+                else {
+                    "kind": self.power_up.kind,
+                    "position": {"x": self.power_up.position.x, "y": self.power_up.position.y},
+                }
+            ),
+            "activeEffects": self.effect_timers_ms,
             "snake": [{"x": segment.x, "y": segment.y} for segment in self.snake],
         }
         return json.dumps(payload)
 
     def place_cash_ahead(self) -> None:
+        """Place cash in front of the snake for debug workflows.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
         head = self.snake[-1]
         candidates = [
             Point(head.x + self.direction.x, head.y + self.direction.y),
@@ -382,6 +510,161 @@ class SnakeCashRush:
             self.cash = point
             self.draw()
             return
+
+    def has_effect(self, effect_name: str) -> bool:
+        """Check whether a temporary effect is currently active.
+
+        Args:
+            effect_name: Effect key to check.
+
+        Returns:
+            True when the effect timer is above zero.
+        """
+        return self.effect_timers_ms.get(effect_name, 0) > 0
+
+    def compute_tick_ms(self) -> int:
+        """Compute active tick speed based on score and effects.
+
+        Args:
+            None.
+
+        Returns:
+            Tick duration in milliseconds.
+        """
+        base_tick_ms = max(MIN_TICK_MS, BASE_TICK_MS - (self.score // SCORE_PER_BILL) * SPEED_STEP_MS)
+        if self.has_effect(POWER_UP_SPEED):
+            boosted_tick_ms = int(base_tick_ms * SPEED_BOOST_MULTIPLIER)
+            return max(MIN_SPEED_BOOST_TICK_MS, boosted_tick_ms)
+        return base_tick_ms
+
+    def resolve_next_head(self, head: Point) -> Point:
+        """Resolve the next head position, applying invincibility wrap behavior.
+
+        Args:
+            head: Current snake head location.
+
+        Returns:
+            Next head point after movement rules.
+        """
+        next_x = head.x + self.direction.x
+        next_y = head.y + self.direction.y
+        if self.has_effect(POWER_UP_INVINCIBLE):
+            return Point(next_x % BOARD_CELLS, next_y % BOARD_CELLS)
+        return Point(next_x, next_y)
+
+    def update_effect_timers(self, elapsed_ms: int) -> None:
+        """Reduce active effect timers by elapsed simulation time.
+
+        Args:
+            elapsed_ms: Milliseconds elapsed in the current tick.
+
+        Returns:
+            None.
+        """
+        for effect_name in POWER_UP_TYPES:
+            current_value = self.effect_timers_ms.get(effect_name, 0)
+            if current_value <= 0:
+                continue
+            self.effect_timers_ms[effect_name] = max(0, current_value - elapsed_ms)
+
+    def try_spawn_power_up(self) -> None:
+        """Spawn a random power-up on an open cell when eligible.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
+        if self.power_up is not None:
+            return
+        if random() > POWER_UP_SPAWN_CHANCE:
+            return
+
+        occupied = set(self.snake)
+        occupied.add(self.cash)
+        available = [
+            Point(x, y)
+            for y in range(BOARD_CELLS)
+            for x in range(BOARD_CELLS)
+            if Point(x, y) not in occupied
+        ]
+        if not available:
+            return
+        self.power_up = PowerUp(kind=choice(POWER_UP_TYPES), position=choice(available))
+
+    def activate_power_up(self, kind: str) -> None:
+        """Activate a collected power-up and refresh its duration.
+
+        Args:
+            kind: Power-up type key.
+
+        Returns:
+            None.
+        """
+        if kind not in POWER_UP_TYPES:
+            return
+        self.effect_timers_ms[kind] = POWER_UP_DURATION_MS
+        label = POWER_UP_LABELS.get(kind, "Power")
+        self.status_text.textContent = f"{label} activated for 7s. Keep moving."
+        self.show_cash_burst()
+
+    def update_power_up_status(self) -> None:
+        """Render active power-up timers in the HUD.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
+        if self.power_up_status is None:
+            return
+
+        active_labels = []
+        for effect_name in POWER_UP_TYPES:
+            remaining_ms = self.effect_timers_ms.get(effect_name, 0)
+            if remaining_ms <= 0:
+                continue
+            seconds = max(1, (remaining_ms + 999) // 1000)
+            label = POWER_UP_LABELS[effect_name]
+            active_labels.append(f"{label} {seconds}s")
+
+        if not active_labels:
+            self.power_up_status.textContent = "No active power-ups"
+            return
+        self.power_up_status.textContent = " | ".join(active_labels)
+
+    def draw_power_up(self, ctx) -> None:
+        """Draw the currently spawned power-up pickup.
+
+        Args:
+            ctx: Canvas rendering context.
+
+        Returns:
+            None.
+        """
+        if self.power_up is None:
+            return
+
+        cell = BOARD_PIXELS / BOARD_CELLS
+        x = self.power_up.position.x * cell + 5
+        y = self.power_up.position.y * cell + 5
+        size = cell - 10
+        fill_color, glow_color, text_color, marker = POWER_UP_COLORS[self.power_up.kind]
+
+        ctx.save()
+        ctx.shadowColor = glow_color
+        ctx.shadowBlur = 14
+        ctx.fillStyle = fill_color
+        round_rect(ctx, x, y, size, size, 8)
+        ctx.fill()
+        ctx.fillStyle = text_color
+        ctx.font = "700 11px Space Grotesk"
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.fillText(marker, x + size / 2, y + size / 2 + 0.5)
+        ctx.restore()
 
     def step_debug(self) -> None:
         if self.game_over:
