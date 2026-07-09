@@ -8,7 +8,6 @@ from types import SimpleNamespace
 
 import pytest
 
-
 class _FakeClassList:
     def __init__(self) -> None:
         self.classes: set[str] = set()
