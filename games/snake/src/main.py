@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from random import choice
+from random import choice, random
 from typing import Iterable
 
 from js import document, window  # type: ignore[import-not-found]
@@ -16,6 +16,8 @@ BASE_TICK_MS = 160
 MIN_TICK_MS = 82
 SPEED_STEP_MS = 5
 SCORE_PER_BILL = 10
+BONUS_SPAWN_CHANCE = 0.25
+BONUS_LIFETIME_TICKS = 30
 
 
 @dataclass(frozen=True)
@@ -38,6 +40,7 @@ class SnakeCashRush:
         self.overlay_message = document.getElementById("overlayMessage")
         self.overlay_button = document.getElementById("overlayButton")
         self.cash_burst = document.getElementById("cashBurst")
+        self.bonus_burst = document.getElementById("bonusBurst")
         self.score_tile = self.score_value.parentElement
         self.best_score_tile = self.best_score_value.parentElement
 
@@ -99,6 +102,8 @@ class SnakeCashRush:
         self.last_frame_time = 0.0
         self.running = False
         self.game_over = False
+        self.bonus: Point | None = None
+        self.bonus_ticks_remaining = 0
         self.score_value.textContent = str(self.score)
         self.status_text.textContent = "Waiting for your first run."
 
@@ -311,7 +316,9 @@ class SnakeCashRush:
         
         Moves the snake, checks for collisions with walls and body,
         handles cash collection (growing snake and increasing score),
-        and increases difficulty. Called once per game tick from game_frame().
+        handles bonus item collection (doubling current score), manages
+        bonus item lifetime countdown, and increases difficulty. Called
+        once per game tick from game_frame().
         
         Returns:
             None
@@ -320,6 +327,7 @@ class SnakeCashRush:
         head = self.snake[-1]
         next_head = Point(head.x + self.direction.x, head.y + self.direction.y)
         will_collect = next_head == self.cash
+        will_collect_bonus = self.bonus is not None and next_head == self.bonus
         collision_body = self.snake if will_collect else self.snake[1:]
 
         if self.hit_wall(next_head) or next_head in collision_body:
@@ -336,8 +344,26 @@ class SnakeCashRush:
             self.show_cash_burst()
             self.sync_best_score()
             self.status_text.textContent = f"Banked ${self.score}. Pace is picking up."
+            if self.bonus is None:
+                self.bonus = self.try_spawn_bonus()
+                if self.bonus is not None:
+                    self.bonus_ticks_remaining = BONUS_LIFETIME_TICKS
+        elif will_collect_bonus:
+            self.score = self.score * 2
+            self.bonus = None
+            self.bonus_ticks_remaining = 0
+            self.snake.pop(0)
+            self.flash_score()
+            self.show_bonus_burst()
+            self.sync_best_score()
+            self.status_text.textContent = f"DOUBLE UP! Score boosted to ${self.score}!"
         else:
             self.snake.pop(0)
+
+        if self.bonus is not None:
+            self.bonus_ticks_remaining -= 1
+            if self.bonus_ticks_remaining <= 0:
+                self.bonus = None
 
         self.score_value.textContent = str(self.score)
 
@@ -373,6 +399,28 @@ class SnakeCashRush:
             if Point(x, y) not in occupied
         ]
         return choice(available) if available else Point(0, 0)
+
+    def try_spawn_bonus(self) -> Point | None:
+        """Try to spawn a score-doubling bonus item at a random board location.
+        
+        Has a BONUS_SPAWN_CHANCE probability of actually spawning. Avoids
+        placing the bonus on the snake body or the current cash position.
+        Only called when no bonus is currently active on the board.
+        
+        Returns:
+            A Point for the bonus location, or None if the spawn did not
+            trigger or no available cell exists.
+        """
+        if random() > BONUS_SPAWN_CHANCE:
+            return None
+        occupied = set(self.snake) | {self.cash}
+        available = [
+            Point(x, y)
+            for y in range(BOARD_CELLS)
+            for x in range(BOARD_CELLS)
+            if Point(x, y) not in occupied
+        ]
+        return choice(available) if available else None
 
     def sync_best_score(self) -> None:
         """Update the best score if current score is higher.
@@ -428,6 +476,28 @@ class SnakeCashRush:
         window.setTimeout(create_proxy(trigger), 10)
         window.setTimeout(create_proxy(cleanup), 460)
 
+    def show_bonus_burst(self) -> None:
+        """Show a score-doubling burst animation.
+        
+        Displays a temporary 'x2!' burst effect in gold when the player
+        collects the bonus item. Manages animation lifecycle with two
+        scheduled events: one to show the burst (10ms delay) and one
+        to hide it (600ms delay).
+        
+        Returns:
+            None
+        """
+        self.bonus_burst.classList.remove("visible")
+
+        def trigger() -> None:
+            self.bonus_burst.classList.add("visible")
+
+        def cleanup() -> None:
+            self.bonus_burst.classList.remove("visible")
+
+        window.setTimeout(create_proxy(trigger), 10)
+        window.setTimeout(create_proxy(cleanup), 600)
+
     def end_game(self) -> None:
         """End the current game due to collision.
         
@@ -452,8 +522,9 @@ class SnakeCashRush:
     def draw(self) -> None:
         """Render the current game state to the canvas.
         
-        Clears the canvas and renders the board grid, cash item, and snake.
-        Called once per animation frame to display updated game visuals.
+        Clears the canvas and renders the board grid, cash item, bonus item
+        (if active), and snake. Called once per animation frame to display
+        updated game visuals.
         
         Returns:
             None
@@ -462,6 +533,8 @@ class SnakeCashRush:
         ctx.clearRect(0, 0, BOARD_PIXELS, BOARD_PIXELS)
         self.draw_board(ctx)
         self.draw_cash(ctx)
+        if self.bonus is not None:
+            self.draw_bonus(ctx)
         self.draw_snake(ctx)
 
     def draw_board(self, ctx) -> None:
@@ -526,6 +599,46 @@ class SnakeCashRush:
         ctx.fillText("$", x + width / 2, y + height / 2 + 0.5)
         ctx.restore()
 
+    def draw_bonus(self, ctx) -> None:
+        """Render the bonus item as a glowing gold diamond on the canvas.
+        
+        Draws a diamond shape with a gold fill and 'x2' label. Blinks when
+        the bonus is about to expire (final 10 ticks) to warn the player.
+        Uses shadow effects for visual depth and distinctiveness.
+        
+        Args:
+            ctx: The canvas 2D drawing context.
+        
+        Returns:
+            None
+        """
+        is_expiring = self.bonus_ticks_remaining <= 10
+        if is_expiring and self.bonus_ticks_remaining % 2 == 0:
+            return
+
+        cell = BOARD_PIXELS / BOARD_CELLS
+        cx = self.bonus.x * cell + cell / 2
+        cy = self.bonus.y * cell + cell / 2
+        half = cell * 0.42
+
+        ctx.save()
+        ctx.shadowColor = "rgba(255, 224, 138, 0.75)"
+        ctx.shadowBlur = 22
+        ctx.fillStyle = "#ffe08a"
+        ctx.beginPath()
+        ctx.moveTo(cx, cy - half)
+        ctx.lineTo(cx + half, cy)
+        ctx.lineTo(cx, cy + half)
+        ctx.lineTo(cx - half, cy)
+        ctx.closePath()
+        ctx.fill()
+        ctx.fillStyle = "#6b4200"
+        ctx.font = "700 11px Space Grotesk"
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.fillText("x2", cx, cy + 0.5)
+        ctx.restore()
+
     def draw_snake(self, ctx) -> None:
         """Render the snake body and head on the canvas.
         
@@ -581,6 +694,8 @@ class SnakeCashRush:
             "tickMs": self.tick_ms,
             "direction": {"x": self.direction.x, "y": self.direction.y},
             "cash": {"x": self.cash.x, "y": self.cash.y},
+            "bonus": {"x": self.bonus.x, "y": self.bonus.y} if self.bonus else None,
+            "bonusTicksRemaining": self.bonus_ticks_remaining,
             "snake": [{"x": segment.x, "y": segment.y} for segment in self.snake],
         }
         return json.dumps(payload)
