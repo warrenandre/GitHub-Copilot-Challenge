@@ -1,60 +1,72 @@
 # Snake Cash Rush
 
-Snake Cash Rush is a browser-based Snake game with Python game logic, cash-bill pickups, a sleek modern UI, live score tracking, and a persisted best score.
+Snake Cash Rush is a browser-based Snake game with Python-driven gameplay logic (via PyScript), cash pickups, increasing speed, and persistent best-score tracking.
 
-## Project Layout
+## How To Run
 
-- `src/index.html`: app shell and HUD
-- `src/styles.css`: visual design and responsive layout
-- `src/main.py`: Python game logic running in the browser
-- `src/app.js`: small browser bridge for animation timing and best-score storage
+### Prerequisites
 
-## Prerequisites
+- Python 3.10+
+- A modern browser (Edge, Chrome, Firefox)
+- Internet access on first load (PyScript and font assets are loaded from CDNs)
 
-- Python 3.10 or later installed locally
-- A modern browser such as Microsoft Edge or Chrome
-- Internet access the first time the app loads, because PyScript and Google Fonts are fetched from their CDNs
-
-## Getting Started
+### Start Locally
 
 1. Open a terminal in `games/snake`.
-2. Start a simple static server:
+2. Run a local static server:
 
-   ```powershell
-   python -m http.server 8000
-   ```
+```powershell
+python -m http.server 8000
+```
 
-3. In your browser, open `http://localhost:8000/src/`.
-4. Wait a few seconds for the PyScript runtime to initialize.
-5. Click `Start Run` or press an arrow key to begin.
+3. Open `http://localhost:8000/src/` in your browser.
+4. Wait for PyScript to initialize.
+5. Click `Start Run` (or press a movement key) to begin.
 
 ## How To Play
 
-- Use `Arrow Keys` or `W`, `A`, `S`, `D` to steer the snake.
-- Eat the money bills to grow and increase your score.
-- Avoid crashing into walls or your own snake body.
-- Press `R` at any time to restart the run.
-- Your best score is stored in the browser and shown in the HUD.
+- Goal: collect as many cash bills as possible without crashing.
+- Movement: use `Arrow Keys` or `W`, `A`, `S`, `D`.
+- Scoring: each cash bill adds points and increases game pace.
+- Lose condition: hitting a wall or your own snake body ends the run.
+- Restart: press `R` or use the restart button.
+- Best score: stored in browser local storage and displayed in the HUD.
+
+## Controls
+
+| Action | Keys |
+|---|---|
+| Move up | `ArrowUp` / `W` |
+| Move down | `ArrowDown` / `S` |
+| Move left | `ArrowLeft` / `A` |
+| Move right | `ArrowRight` / `D` |
+| Restart run | `R` |
+
+## Project Structure
+
+```text
+games/snake/
+   README.md        # Project documentation
+   src/
+      index.html     # Page layout, HUD, and canvas container
+      styles.css     # Visual styling and responsive behavior
+      app.js         # Browser bridge (RAF + local storage helpers)
+      main.py        # Core Snake game logic written in Python
+```
 
 ## Troubleshooting
 
-### The page opens but the game does not start
+### Game does not start
 
-- Make sure you opened the app through `http://localhost:8000/src/` and not by double-clicking the HTML file.
-- Open the browser developer console and check for failed network requests to PyScript assets.
+- Confirm you opened `http://localhost:8000/src/` and not the file directly from disk.
+- Check browser DevTools for failed PyScript asset requests.
 
-### The board shows but styling looks broken
+### Styling or fonts look off
 
-- Confirm you have internet access for the external font and PyScript stylesheet downloads.
-- Refresh the page once after the first load.
+- Confirm internet access for CDN assets.
+- Refresh once after the first load.
 
-### The best score does not persist
+### Best score is not saved
 
-- Confirm local storage is enabled in the browser.
-- If you use private browsing, stored values may be cleared when the session ends.
-
-## Development Notes
-
-- The game is intentionally frontend-only.
-- Python handles the core gameplay logic.
-- JavaScript is limited to browser-specific helpers for animation timing and local storage.
+- Ensure browser local storage is enabled.
+- In private/incognito mode, local storage may be cleared after the session.
