@@ -78,6 +78,12 @@ class SnakeCashRush:
         self.draw()
 
     def reset_state(self) -> None:
+        """Reset the game state to its initial values.
+
+        Positions the snake at the centre of the board, sets the direction
+        to upward, spawns a new cash item, resets score and timing, and
+        updates the UI to reflect the waiting state.
+        """
         center = BOARD_CELLS // 2
         self.snake = [Point(center, center + 1), Point(center, center), Point(center, center - 1)]
         self.direction = Point(0, -1)
@@ -93,6 +99,13 @@ class SnakeCashRush:
         self.status_text.textContent = "Waiting for your first run."
 
     def start_game(self) -> None:
+        """Begin a new game run.
+
+        Marks the game as running, resets timing accumulators, updates the
+        UI status text and start button label, hides the overlay, and
+        schedules the animation loop. Does nothing if already running;
+        resets state first if the game is in a game-over state.
+        """
         if self.running:
             return
         if self.game_over:
@@ -108,21 +121,29 @@ class SnakeCashRush:
         self.ensure_animation()
 
     def handle_primary_action(self) -> None:
+        """Handle the primary start/restart action triggered by the start button.
+
+        Restarts the game if a run is active or has just ended; otherwise
+        starts a fresh game.
+        """
         if self.running or self.game_over:
             self.restart_game()
             return
         self.start_game()
 
     def restart_game(self) -> None:
+        """Cancel any active animation, reset state, and immediately start a new run."""
         self.cancel_animation()
         self.reset_state()
         self.start_game()
 
     def ensure_animation(self) -> None:
+        """Schedule the next animation frame if one is not already pending."""
         if self.animation_handle is None:
             self.animation_handle = window.snakeCashRushBridge.raf(self._frame_proxy)
 
     def cancel_animation(self) -> None:
+        """Cancel the pending animation frame request if one is active."""
         if self.animation_handle is not None:
             window.snakeCashRushBridge.cancelRaf(self.animation_handle)
             self.animation_handle = None
@@ -135,6 +156,17 @@ class SnakeCashRush:
         button_text: str | None = None,
         visible: bool | None = None,
     ) -> None:
+        """Update the game overlay UI elements.
+
+        Only fields that are not None are updated.
+
+        Args:
+            kicker: Small eyebrow text shown above the title.
+            title: Main heading displayed on the overlay.
+            message: Body text describing the overlay context.
+            button_text: Label for the overlay call-to-action button.
+            visible: True shows the overlay; False hides it; None leaves it unchanged.
+        """
         if kicker is not None:
             self.overlay_kicker.textContent = kicker
         if title is not None:
@@ -149,6 +181,16 @@ class SnakeCashRush:
             self.overlay.classList.remove("visible")
 
     def handle_keydown(self, event) -> None:
+        """Process a keydown event to control snake direction or restart the game.
+
+        Handles arrow keys and WASD for direction changes, and R for restart.
+        Direction inputs that are the reverse of the current direction are
+        ignored to prevent instant self-collision. Any direction key also
+        starts the game if it has not yet begun.
+
+        Args:
+            event: A DOM KeyboardEvent from the document keydown listener.
+        """
         key = str(event.key).lower()
         if key == "r":
             self.restart_game()
@@ -177,9 +219,28 @@ class SnakeCashRush:
         self.pending_direction = next_direction
 
     def is_reverse(self, next_direction: Point, current_direction: Point) -> bool:
+        """Check whether a proposed direction is directly opposite the current one.
+
+        Args:
+            next_direction: The direction the player wants to move toward.
+            current_direction: The snake's current movement direction.
+
+        Returns:
+            True if next_direction is the exact reverse of current_direction,
+            False otherwise.
+        """
         return next_direction.x == -current_direction.x and next_direction.y == -current_direction.y
 
     def game_frame(self, timestamp) -> None:
+        """Process a single animation frame, advancing the game by fixed time steps.
+
+        Uses a fixed-timestep accumulator pattern: elapsed wall-clock time is
+        added to an accumulator and consumed in ``tick_ms``-sized slices so that
+        game logic runs at a consistent speed regardless of rendering frame rate.
+
+        Args:
+            timestamp: High-resolution timestamp (ms) supplied by requestAnimationFrame.
+        """
         self.animation_handle = None
 
         if not self.running:
@@ -193,6 +254,8 @@ class SnakeCashRush:
         self.last_frame_time = float(timestamp)
         self.accumulator += frame_delta
 
+        # Fixed-timestep loop: consume accumulated time in tick_ms slices so
+        # game-logic speed is decoupled from the rendering frame rate.
         while self.accumulator >= self.tick_ms and self.running:
           self.accumulator -= self.tick_ms
           self.advance()
@@ -203,10 +266,19 @@ class SnakeCashRush:
             self.animation_handle = window.snakeCashRushBridge.raf(self._frame_proxy)
 
     def advance(self) -> None:
+        """Advance the snake by one step in the current direction.
+
+        Commits the pending direction, computes the new head position, and
+        checks for cash collection or collision. Collecting cash increments
+        the score, increases speed, and spawns a new cash item. A wall or
+        self-collision ends the game.
+        """
         self.direction = self.pending_direction
         head = self.snake[-1]
         next_head = Point(head.x + self.direction.x, head.y + self.direction.y)
         will_collect = next_head == self.cash
+        # When collecting cash the tail won't vacate this tick, so check the
+        # full body for collisions; otherwise exclude the tail as it will move.
         collision_body = self.snake if will_collect else self.snake[1:]
 
         if self.hit_wall(next_head) or next_head in collision_body:
@@ -217,6 +289,7 @@ class SnakeCashRush:
 
         if will_collect:
             self.score += SCORE_PER_BILL
+            # Reduce tick interval by SPEED_STEP_MS per bill collected, floored at MIN_TICK_MS.
             self.tick_ms = max(MIN_TICK_MS, BASE_TICK_MS - (self.score // SCORE_PER_BILL) * SPEED_STEP_MS)
             self.cash = self.spawn_cash(self.snake)
             self.flash_score()
@@ -229,9 +302,26 @@ class SnakeCashRush:
         self.score_value.textContent = str(self.score)
 
     def hit_wall(self, point: Point) -> bool:
+        """Check whether a point lies outside the board boundaries.
+
+        Args:
+            point: The grid coordinate to test.
+
+        Returns:
+            True if the point is out of bounds, False if it is within the board.
+        """
         return point.x < 0 or point.y < 0 or point.x >= BOARD_CELLS or point.y >= BOARD_CELLS
 
     def spawn_cash(self, snake: Iterable[Point]) -> Point:
+        """Spawn a cash item on a random unoccupied cell.
+
+        Args:
+            snake: An iterable of Points currently occupied by the snake body.
+
+        Returns:
+            A randomly chosen Point not occupied by the snake. Falls back to
+            Point(0, 0) if every cell on the board is occupied.
+        """
         occupied = set(snake)
         available = [
             Point(x, y)
@@ -242,6 +332,12 @@ class SnakeCashRush:
         return choice(available) if available else Point(0, 0)
 
     def sync_best_score(self) -> None:
+        """Update and persist the best score when the current score exceeds it.
+
+        Skips silently if the current score has not beaten the existing best.
+        When a new best is reached, updates the in-memory value, refreshes the
+        UI label, triggers a pulse animation, and writes through the JS bridge.
+        """
         if self.score <= self.best_score:
             return
         self.best_score = self.score
@@ -251,12 +347,19 @@ class SnakeCashRush:
         window.setTimeout(create_proxy(lambda: self.best_score_tile.classList.remove("pulse")), 240)
 
     def flash_score(self) -> None:
+        """Trigger a brief pulse animation on the score tile."""
         self.score_tile.classList.remove("pulse")
         self.best_score_tile.classList.remove("pulse")
         self.score_tile.classList.add("pulse")
         window.setTimeout(create_proxy(lambda: self.score_tile.classList.remove("pulse")), 240)
 
     def show_cash_burst(self) -> None:
+        """Display the cash-burst visual effect for a short duration.
+
+        Removes any existing ``visible`` class first to allow re-triggering the
+        CSS animation, adds it after a brief delay to start the effect, then
+        removes it again after the animation completes.
+        """
         self.cash_burst.classList.remove("visible")
 
         def trigger() -> None:
@@ -269,6 +372,7 @@ class SnakeCashRush:
         window.setTimeout(create_proxy(cleanup), 460)
 
     def end_game(self) -> None:
+        """End the current run, update the UI status text, and show the game-over overlay."""
         self.running = False
         self.game_over = True
         self.status_text.textContent = f"Run over at ${self.score}. Tap restart and chase a higher stack."
@@ -282,6 +386,7 @@ class SnakeCashRush:
         self.draw()
 
     def draw(self) -> None:
+        """Clear the canvas and redraw the board, cash item, and snake."""
         ctx = self.ctx
         ctx.clearRect(0, 0, BOARD_PIXELS, BOARD_PIXELS)
         self.draw_board(ctx)
@@ -289,6 +394,11 @@ class SnakeCashRush:
         self.draw_snake(ctx)
 
     def draw_board(self, ctx) -> None:
+        """Render the dark background and subtle grid lines onto the canvas.
+
+        Args:
+            ctx: The 2D canvas rendering context to draw on.
+        """
         ctx.fillStyle = "#07141d"
         ctx.fillRect(0, 0, BOARD_PIXELS, BOARD_PIXELS)
 
@@ -307,6 +417,11 @@ class SnakeCashRush:
             ctx.stroke()
 
     def draw_cash(self, ctx) -> None:
+        """Render the cash item as a glowing rounded rectangle with a '$' label.
+
+        Args:
+            ctx: The 2D canvas rendering context to draw on.
+        """
         px = self.cash.x * GRID_SIZE * 1.4
         py = self.cash.y * GRID_SIZE * 1.4
         cell = BOARD_PIXELS / BOARD_CELLS
@@ -329,6 +444,14 @@ class SnakeCashRush:
         ctx.restore()
 
     def draw_snake(self, ctx) -> None:
+        """Render all snake segments, distinguishing the head from body segments.
+
+        The head is drawn with a brighter fill and a larger shadow blur.
+        Two eye circles are added to the head segment.
+
+        Args:
+            ctx: The 2D canvas rendering context to draw on.
+        """
         cell = BOARD_PIXELS / BOARD_CELLS
         for index, segment in enumerate(self.snake):
             inset = 3
@@ -345,6 +468,7 @@ class SnakeCashRush:
             ctx.fill()
 
             if is_head:
+                # Position eyes at ~38 % from the top, symmetric about the centre axis.
                 eye_y = y + size * 0.38
                 ctx.fillStyle = "#063720"
                 ctx.beginPath()
@@ -354,6 +478,12 @@ class SnakeCashRush:
             ctx.restore()
 
     def snapshot_json(self) -> str:
+        """Serialise the current game state to a JSON string.
+
+        Returns:
+            A JSON string with keys: running, gameOver, score, bestScore,
+            tickMs, direction, cash, and snake (list of {x, y} objects).
+        """
         payload = {
             "running": self.running,
             "gameOver": self.game_over,
@@ -367,7 +497,14 @@ class SnakeCashRush:
         return json.dumps(payload)
 
     def place_cash_ahead(self) -> None:
+        """Move the cash item to the nearest reachable cell in front of the snake.
+
+        Tries the cell directly ahead of the head first, then falls back to the
+        four cardinal neighbours. Picks the first candidate that is in bounds
+        and not occupied by the snake, then redraws the canvas.
+        """
         head = self.snake[-1]
+        # Prioritise the cell directly ahead; fall back to cardinal neighbours.
         candidates = [
             Point(head.x + self.direction.x, head.y + self.direction.y),
             Point(head.x + 1, head.y),
@@ -384,6 +521,11 @@ class SnakeCashRush:
             return
 
     def step_debug(self) -> None:
+        """Advance the game by exactly one tick for debugging purposes.
+
+        Ensures the game is marked as running (unless already in a game-over
+        state), steps the snake forward once, then redraws the canvas.
+        """
         if self.game_over:
             return
         self.running = True
@@ -391,11 +533,25 @@ class SnakeCashRush:
         self.draw()
 
     def destroy(self) -> None:
+        """Clean up the game instance by cancelling animations and removing event listeners."""
         self.cancel_animation()
         document.removeEventListener("keydown", self._key_proxy)
 
 
 def round_rect(ctx, x: float, y: float, width: float, height: float, radius: float) -> None:
+    """Trace a rounded-rectangle path on the given canvas context.
+
+    Builds the path with straight lines and quadratic Bézier corner curves.
+    Call ``ctx.fill()`` or ``ctx.stroke()`` after this function to paint the shape.
+
+    Args:
+        ctx: The 2D canvas rendering context to draw on.
+        x: The x-coordinate of the top-left corner.
+        y: The y-coordinate of the top-left corner.
+        width: The width of the rectangle in pixels.
+        height: The height of the rectangle in pixels.
+        radius: The corner radius in pixels.
+    """
     ctx.beginPath()
     ctx.moveTo(x + radius, y)
     ctx.lineTo(x + width - radius, y)
