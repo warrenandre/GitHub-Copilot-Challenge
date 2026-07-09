@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Copilot Challenge Workshop — Introduction</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #1a1f2b 100%);
+            color: #e6edf3;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header / Nav Bar */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 3rem;
+            background: rgba(13, 17, 23, 0.95);
+            border-bottom: 1px solid #30363d;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+        }
+
+        .brand-logos {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .brand-logos svg {
+            height: 28px;
+            fill: #e6edf3;
+        }
+
+        .brand-separator {
+            width: 1px;
+            height: 28px;
+            background: #30363d;
+        }
+
+        .top-bar nav a {
+            color: #8b949e;
+            text-decoration: none;
+            margin-left: 2rem;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+
+        .top-bar nav a:hover {
+            color: #58a6ff;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 5rem 2rem 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(88, 166, 255, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 0.4rem 1.2rem;
+            background: rgba(88, 166, 255, 0.1);
+            border: 1px solid rgba(88, 166, 255, 0.3);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: #58a6ff;
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.5px;
+        }
+
+        .hero h1 {
+            font-size: 3.2rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #58a6ff, #d2a8ff, #f78166);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: #8b949e;
+            max-width: 700px;
+            margin: 0 auto 2.5rem;
+            line-height: 1.6;
+        }
+
+        .hero-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 1rem 2.5rem;
+            background: linear-gradient(135deg, #238636, #2ea043);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .hero-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(46, 160, 67, 0.4);
+        }
+
+        /* Section Styling */
+        .section {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: #8b949e;
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* How It Works — Flow Diagram */
+        .flow-container {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 0;
+            flex-wrap: wrap;
+            padding: 2rem 0;
+        }
+
+        .flow-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            max-width: 200px;
+            position: relative;
+        }
+
+        .flow-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            border: 2px solid #30363d;
+            background: #161b22;
+            position: relative;
+            z-index: 1;
+        }
+
+        .flow-step:nth-child(1) .flow-icon { border-color: #58a6ff; box-shadow: 0 0 16px rgba(88, 166, 255, 0.2); }
+        .flow-step:nth-child(2) .flow-icon { border-color: #d2a8ff; box-shadow: 0 0 16px rgba(210, 168, 255, 0.2); }
+        .flow-step:nth-child(3) .flow-icon { border-color: #3fb950; box-shadow: 0 0 16px rgba(63, 185, 80, 0.2); }
+        .flow-step:nth-child(4) .flow-icon { border-color: #f78166; box-shadow: 0 0 16px rgba(247, 129, 102, 0.2); }
+        .flow-step:nth-child(5) .flow-icon { border-color: #f0e68c; box-shadow: 0 0 16px rgba(240, 230, 140, 0.2); }
+
+        .flow-step h4 {
+            font-size: 0.95rem;
+            margin-bottom: 0.4rem;
+            color: #e6edf3;
+        }
+
+        .flow-step p {
+            font-size: 0.82rem;
+            color: #8b949e;
+            line-height: 1.4;
+        }
+
+        .flow-arrow {
+            display: flex;
+            align-items: center;
+            padding-top: 1.5rem;
+            color: #30363d;
+            font-size: 1.5rem;
+            margin: 0 0.5rem;
+        }
+
+        /* Challenge Cards Grid */
+        .challenges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .challenge-tile {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 1.8rem;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .challenge-tile::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+
+        .challenge-tile:nth-child(1)::before { background: #58a6ff; }
+        .challenge-tile:nth-child(2)::before { background: #d2a8ff; }
+        .challenge-tile:nth-child(3)::before { background: #3fb950; }
+        .challenge-tile:nth-child(4)::before { background: #f78166; }
+
+        .challenge-tile:hover {
+            border-color: #484f58;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .challenge-tile .tile-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            opacity: 0.15;
+            position: absolute;
+            top: 0.5rem;
+            right: 1rem;
+        }
+
+        .challenge-tile .tile-icon {
+            font-size: 1.8rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .challenge-tile h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .challenge-tile p {
+            font-size: 0.88rem;
+            color: #8b949e;
+            line-height: 1.5;
+        }
+
+        /* Scoring Architecture */
+        .architecture-box {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 16px;
+            padding: 3rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .architecture-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #58a6ff, #d2a8ff, #3fb950, #f78166);
+        }
+
+        .arch-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .arch-node {
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 1.2rem 1.5rem;
+            text-align: center;
+            min-width: 150px;
+        }
+
+        .arch-node .node-icon {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .arch-node h4 {
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .arch-node p {
+            font-size: 0.78rem;
+            color: #8b949e;
+        }
+
+        .arch-arrow {
+            color: #484f58;
+            font-size: 1.5rem;
+        }
+
+        /* Score Breakdown */
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .score-item {
+            background: #21262d;
+            border-radius: 10px;
+            padding: 1.2rem;
+            text-align: center;
+            border: 1px solid #30363d;
+        }
+
+        .score-item .score-value {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #3fb950, #58a6ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .score-item .score-label {
+            font-size: 0.85rem;
+            color: #8b949e;
+            margin-top: 0.3rem;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            border-top: 1px solid #21262d;
+            margin-top: 3rem;
+        }
+
+        .footer p {
+            color: #484f58;
+            font-size: 0.85rem;
+        }
+
+        .footer .footer-logos {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer .footer-logos svg {
+            height: 24px;
+            fill: #484f58;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.2rem; }
+            .top-bar { padding: 1rem 1.5rem; }
+            .top-bar nav { display: none; }
+            .flow-container { flex-direction: column; align-items: center; }
+            .flow-arrow { transform: rotate(90deg); margin: 0.5rem 0; }
+            .architecture-box { padding: 2rem 1.5rem; }
+            .arch-diagram { flex-direction: column; }
+            .arch-arrow { transform: rotate(90deg); }
+            .watermark { display: none; }
+        }
+
+        /* Watermark Logos */
+        .watermark {
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            opacity: 0.12;
+            pointer-events: none;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .watermark-left {
+            left: calc(50% - 320px);
+        }
+
+        .watermark-right {
+            right: calc(50% - 320px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <header class="top-bar">
+        <div class="brand-logos">
+            <!-- Microsoft Logo -->
+            <svg viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
+                <rect x="0" y="0" width="11" height="11" fill="#f25022"/>
+                <rect x="12" y="0" width="11" height="11" fill="#7fba00"/>
+                <rect x="0" y="12" width="11" height="11" fill="#00a4ef"/>
+                <rect x="12" y="12" width="11" height="11" fill="#ffb900"/>
+            </svg>
+            <div class="brand-separator"></div>
+            <!-- GitHub Copilot Logo -->
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
+                <text x="12" y="16" text-anchor="middle" font-size="6" fill="#e6edf3" font-family="Segoe UI" font-weight="700"></text>
+            </svg>
+            <span style="font-weight: 700; font-size: 1rem;">GitHub Copilot Challenge</span>
+        </div>
+        <nav>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#challenges">Challenges</a>
+            <a href="#scoring">Scoring</a>
+            <a href="index.html">Start Challenge →</a>
+        </nav>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+        <!-- Microsoft watermark (left) -->
+        <svg class="watermark watermark-left" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0" y="0" width="11" height="11" fill="#f25022"/>
+            <rect x="12" y="0" width="11" height="11" fill="#7fba00"/>
+            <rect x="0" y="12" width="11" height="11" fill="#00a4ef"/>
+            <rect x="12" y="12" width="11" height="11" fill="#ffb900"/>
+        </svg>
+        <!-- GitHub Copilot watermark (right) -->
+        <svg class="watermark watermark-right" viewBox="0 0 1200 1200" xmlns="http://www.w3.org/2000/svg">
+            <path d="M600 107C326.8 107 107 326.8 107 600s219.8 493 493 493 493-219.8 493-493S873.2 107 600 107zm-169.7 698.3c-27.6 0-50-22.4-50-50V444.7c0-27.6 22.4-50 50-50s50 22.4 50 50v310.6c0 27.6-22.4 50-50 50zm339.4 0c-27.6 0-50-22.4-50-50V444.7c0-27.6 22.4-50 50-50s50 22.4 50 50v310.6c0 27.6-22.4 50-50 50z" fill="#e6edf3"/>
+        </svg>
+        <div class="hero-badge">🤖 Powered by AI Pair Programming</div>
+        <h1>GitHub Copilot<br>Enterprise Challenge</h1>
+        <p>A hands-on workshop where you race through enterprise software challenges using GitHub Copilot. Build production-ready code, get scored by an AI agent, and compete on the live leaderboard.</p>
+        <a href="index.html" class="hero-cta">🏁 Start the Challenge Race</a>
+    </section>
+
+    <!-- How It Works -->
+    <section class="section" id="how-it-works">
+        <h2 class="section-title">How It Works</h2>
+        <p class="section-subtitle">Five simple steps from clone to leaderboard</p>
+
+        <div class="flow-container">
+            <div class="flow-step">
+                <div class="flow-icon">📂</div>
+                <h4>1. Clone</h4>
+                <p>Clone the repo and create a branch with your name</p>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="flow-icon">🤖</div>
+                <h4>2. Challenge</h4>
+                <p>Use GitHub Copilot to complete 4 enterprise challenges</p>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="flow-icon">🚀</div>
+                <h4>3. Push</h4>
+                <p>Commit and push your changes to your branch</p>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="flow-icon">⚙️</div>
+                <h4>4. AI Scoring</h4>
+                <p>An agentic workflow automatically evaluates your code</p>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+                <div class="flow-icon">🏆</div>
+                <h4>5. Leaderboard</h4>
+                <p>Track your score on the live challenge tracker</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Challenges -->
+    <section class="section" id="challenges">
+        <h2 class="section-title">The Challenges</h2>
+        <p class="section-subtitle">Four pillars of enterprise-grade software</p>
+
+        <div class="challenges-grid">
+            <div class="challenge-tile">
+                <span class="tile-number">01</span>
+                <div class="tile-icon">📄</div>
+                <h3>Documentation</h3>
+                <p>Generate comprehensive READMEs, docstrings, and inline comments that make your codebase accessible to any team member.</p>
+            </div>
+            <div class="challenge-tile">
+                <span class="tile-number">02</span>
+                <div class="tile-icon">⚙️</div>
+                <h3>Custom Instructions</h3>
+                <p>Configure Copilot with team coding standards, naming conventions, and architectural patterns for consistent AI suggestions.</p>
+            </div>
+            <div class="challenge-tile">
+                <span class="tile-number">03</span>
+                <div class="tile-icon">🤖</div>
+                <h3>Custom Agent</h3>
+                <p>Build a spec-driven development agent that automates planning workflows and produces structured design documents.</p>
+            </div>
+            <div class="challenge-tile">
+                <span class="tile-number">04</span>
+                <div class="tile-icon">🧪</div>
+                <h3>Testing</h3>
+                <p>Create comprehensive test suites covering happy paths, edge cases, and failure scenarios with full pytest coverage.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Scoring & Architecture -->
+    <section class="section" id="scoring">
+        <h2 class="section-title">Automated AI Scoring</h2>
+        <p class="section-subtitle">Your code is evaluated by an agentic GitHub Actions workflow</p>
+
+        <div class="architecture-box">
+            <div class="arch-diagram">
+                <div class="arch-node">
+                    <div class="node-icon">👩‍💻</div>
+                    <h4>You Push Code</h4>
+                    <p>git push to your branch</p>
+                </div>
+                <div class="arch-arrow">→</div>
+                <div class="arch-node">
+                    <div class="node-icon">⚡</div>
+                    <h4>GitHub Actions</h4>
+                    <p>Workflow triggered</p>
+                </div>
+                <div class="arch-arrow">→</div>
+                <div class="arch-node">
+                    <div class="node-icon">🧠</div>
+                    <h4>AI Agent Evaluator</h4>
+                    <p>Scores across 4 categories</p>
+                </div>
+                <div class="arch-arrow">→</div>
+                <div class="arch-node">
+                    <div class="node-icon">🏆</div>
+                    <h4>Score Tracker</h4>
+                    <p>Live leaderboard updates</p>
+                </div>
+            </div>
+
+            <div class="score-grid">
+                <div class="score-item">
+                    <div class="score-value">25</div>
+                    <div class="score-label">Documentation</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-value">25</div>
+                    <div class="score-label">Custom Instructions</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-value">25</div>
+                    <div class="score-label">Custom Agent</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-value">25</div>
+                    <div class="score-label">Testing</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-logos">
+            <svg viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
+                <rect x="0" y="0" width="11" height="11" fill="#484f58"/>
+                <rect x="12" y="0" width="11" height="11" fill="#484f58"/>
+                <rect x="0" y="12" width="11" height="11" fill="#484f58"/>
+                <rect x="12" y="12" width="11" height="11" fill="#484f58"/>
+            </svg>
+            <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" style="height: 22px;">
+                <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+        </div>
+        <p>Built with ❤️ using GitHub Copilot &amp; Microsoft AI — Enterprise Challenge Workshop 2026</p>
+    </footer>
+</body>
+</html>
