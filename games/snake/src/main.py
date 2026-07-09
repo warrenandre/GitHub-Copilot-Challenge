@@ -60,6 +60,10 @@ class SnakeCashRush:
         self._snapshot_proxy = create_proxy(lambda: self.snapshot_json())
         self._place_cash_proxy = create_proxy(lambda: self.place_cash_ahead())
         self._step_proxy = create_proxy(lambda: self.step_debug())
+        self._clear_best_pulse_proxy = create_proxy(lambda: self.best_score_tile.classList.remove("pulse"))
+        self._clear_score_pulse_proxy = create_proxy(lambda: self.score_tile.classList.remove("pulse"))
+        self._cash_burst_show_proxy = create_proxy(self._show_cash_burst)
+        self._cash_burst_hide_proxy = create_proxy(self._hide_cash_burst)
 
         document.addEventListener("keydown", self._key_proxy)
         self.start_button.addEventListener("click", self._start_proxy)
@@ -267,28 +271,30 @@ class SnakeCashRush:
         self.best_score_value.textContent = str(self.best_score)
         self.best_score_tile.classList.add("pulse")
         window.snakeCashRushBridge.writeBestScore(self.best_score)
-        window.setTimeout(create_proxy(lambda: self.best_score_tile.classList.remove("pulse")), 240)
+        window.setTimeout(self._clear_best_pulse_proxy, 240)
 
     def flash_score(self) -> None:
         """Animate score tiles to emphasize score updates."""
         self.score_tile.classList.remove("pulse")
         self.best_score_tile.classList.remove("pulse")
         self.score_tile.classList.add("pulse")
-        window.setTimeout(create_proxy(lambda: self.score_tile.classList.remove("pulse")), 240)
+        window.setTimeout(self._clear_score_pulse_proxy, 240)
+
+    def _show_cash_burst(self) -> None:
+        """Enable the pickup burst class during delayed animation start."""
+        self.cash_burst.classList.add("visible")
+
+    def _hide_cash_burst(self) -> None:
+        """Disable the pickup burst class after animation finishes."""
+        self.cash_burst.classList.remove("visible")
 
     def show_cash_burst(self) -> None:
         """Play a short visual burst animation when cash is collected."""
         self.cash_burst.classList.remove("visible")
 
-        def trigger() -> None:
-            self.cash_burst.classList.add("visible")
-
-        def cleanup() -> None:
-            self.cash_burst.classList.remove("visible")
-
         # Delay toggles so repeated pickups still retrigger CSS animation reliably.
-        window.setTimeout(create_proxy(trigger), 10)
-        window.setTimeout(create_proxy(cleanup), 460)
+        window.setTimeout(self._cash_burst_show_proxy, 10)
+        window.setTimeout(self._cash_burst_hide_proxy, 460)
 
     def end_game(self) -> None:
         """Stop the run, display game-over messaging, and reveal restart overlay."""
