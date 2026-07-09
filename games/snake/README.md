@@ -3,6 +3,7 @@
 Snake Cash Rush is a browser-based arcade game inspired by classic Snake, built with Python game logic running in the browser through PyScript.
 
 The game blends a modern finance-themed UI with fast gameplay loops:
+
 - collect cash bills to score and grow
 - survive collisions with walls and yourself
 - accelerate progressively as your score rises
@@ -105,9 +106,10 @@ http://localhost:8000/src/
 ### 2) JavaScript Bridge (`src/app.js`)
 
 Defines `window.snakeCashRushBridge`:
+
 - `raf(callback)` and `cancelRaf(handle)`
 - `readBestScore()` and `writeBestScore(score)` using local storage key:
-   - `snake-cash-rush-best`
+  - `snake-cash-rush-best`
 
 ### 3) UI Layer (`src/index.html`, `src/styles.css`)
 
@@ -157,6 +159,7 @@ window.snakeCashRushStep();
 ## Extending the Game
 
 Ideas for enhancements:
+
 - add pause/resume state
 - add sound effects for pickups and collision
 - add obstacle tiles or bonus pickups
